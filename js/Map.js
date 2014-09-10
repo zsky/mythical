@@ -1,8 +1,10 @@
 define(['lib/pixi'], function (PIXI) {
 
-    var Map = function(name, bgContainer){
+    var Map = function(name, bgContainer, topContainer){
         this.name = name;
         this.bgContainer = bgContainer;
+        this.topContainer = topContainer;
+        this.collisionContainer = this.collisionContainer;
 
     };
     Map.prototype.init = function() {
@@ -36,14 +38,25 @@ define(['lib/pixi'], function (PIXI) {
 
         }
 
-        // laod layer data
+
+        // load layer data
         for(var j = 0; j < this.json.layers.length; j++){
             var layer = this.json.layers[j];
-            if(layer.type === "tilelayer"){
-                this.drawLayerData(layer);
+            if(layer.type === "tilelayer" && j === 0){
+                this.drawLayerData(layer, this.bgContainer);
+            } else if(layer.type === "tilelayer" && j === 1){
+                this.drawLayerData(layer, this.topContainer);
+            } else if(layer.type === "objectgroup"){
+                console.log('objectgroup', layer.objects, layer);
+                this.barriers = layer.objects;
+                this.drawCollData(layer.objects, this.topContainer);
             }
             
         }
+        console.log('resizeMap again');
+
+        this.resizeMap();
+
 
 
     };
@@ -60,7 +73,7 @@ define(['lib/pixi'], function (PIXI) {
                 var textureName = this.name + (tileset.firstgid + j*widthNum + i);
 
                 if(i < 2){
-                    console.log('textureName', textureName);
+                    //console.log('textureName', textureName);
                 }
 
                 PIXI.TextureCache[textureName] = new PIXI.Texture(baseTexture, {
@@ -78,10 +91,25 @@ define(['lib/pixi'], function (PIXI) {
 
     };
 
-    Map.prototype.drawLayerData = function(layer){
+    Map.prototype.resizeMap  = function(){
+        var adjust = {};
+        if(this.json){
+            var actualWidth = this.json.width * this.json.tilewidth * this.json.adjust.content;
+            var offset = this.json.width * this.json.tilewidth * this.json.adjust.start;
+            adjust.ratio = window.innerWidth / actualWidth;
+            adjust.offset = offset;
+        } else{
+            adjust.ratio = 1;
+            adjust.offset = 0;
+        }        
+
+        return adjust;
+
+    };
+
+    Map.prototype.drawLayerData = function(layer, container){
         console.log('drawLayerData', layer);
         var data = layer.data;
-        var container = new PIXI.DisplayObjectContainer();
         container.alpha = layer.opacity;
         container.visible = layer.visible;
         container.x = layer.x;
@@ -104,10 +132,29 @@ define(['lib/pixi'], function (PIXI) {
 
         }
 
-        this.bgContainer.addChild(container);
-
     };
 
+    Map.prototype.drawCollData = function(objects, container){
+        console.log('drawCollData', objects);
+
+        var graphics = new PIXI.Graphics();
+        graphics.lineStyle(1, 0x0000FF, 1);
+        for(var i = 0; i < objects.length; i++){
+            var obj = objects[i];
+            if(obj.ellipse){
+                //graphics.beginFill(0xFFFF0B, 0.5);
+                var r = obj.width/2;
+                graphics.drawCircle(obj.x + r, obj.y + r, r);
+                //graphics.endFill();
+            } else{
+                graphics.drawRect(obj.x, obj.y, obj.width, obj.height);
+            }
+            
+        }
+
+        container.addChild(graphics);
+
+    };
 
 
 

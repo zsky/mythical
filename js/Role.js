@@ -18,62 +18,70 @@ define(['lib/pixi'], function (PIXI) {
         this.vX = 3;
         this.vY = 3;
 
+        this.actions = {};
+        this.animationSpeed = 0.2;
+
+
+
+        // texture 
+        this.textureData = {
+            actions: ["walkdown", "walkleft", "walkright", "walkup"],
+            imgWidth: 100,
+            imgHeight: 100,
+            frame_num: 4,
+            ratio: 0.5
+        };
+
+        this.collisionSpace = 5;
+
+
     };
 
     Role.prototype.init = function(){
 
-
-        /*var datas = ["Graphics/girl/girl2.json"];
-        var loader = new PIXI.AssetLoader(datas);
-        loader.onComplete = this.onDataLoaded.bind(this);
-        loader.load();*/
-
-        var image = new PIXI.ImageLoader("Graphics/Characters/Actor1.png");
+        var image = new PIXI.ImageLoader("resource/role/qiangu.png");
         image.on("loaded", function(){
             console.log('image loaded');
         });
 
         var baseTexture = image.texture.baseTexture;
-        var imgWidth = 32,
-            imgHeight = 32;
-        for(var i = 0; i < 3; i++){
-            PIXI.TextureCache["walkdown"+i] = new PIXI.Texture(baseTexture, {
-                                               x: i*imgWidth,
-                                               y: 0,
-                                               width: imgWidth,
-                                               height: imgHeight
-                                           });
-            PIXI.TextureCache["walkleft"+i] = new PIXI.Texture(baseTexture, {
-                                               x: i*imgWidth,
-                                               y: imgHeight,
-                                               width: imgWidth,
-                                               height: imgHeight
-                                           });
+        var imgWidth = this.textureData.imgWidth,
+            imgHeight = this.textureData.imgHeight;
+        for(var i = 0; i < this.textureData.actions.length; i++){
+            for(var j = 0; j < this.textureData.frame_num; j++){
+                var action_name = this.textureData.actions[i];
+                PIXI.TextureCache[action_name+j] = new PIXI.Texture(baseTexture, {
+                                                   x: j*imgWidth,
+                                                   y: i*imgHeight,
+                                                   width: imgWidth,
+                                                   height: imgHeight
+                                               });
+            }
         }
-
+        console.log('pixi TextureCache', PIXI.TextureCache);
         
-
-
         image.load();
 
-        this.actions = {};
+        var frames = [];
 
-        var walkdownFrames = [];
-        var walkleftFrames = [];
+        for(var i = 0; i < this.textureData.actions.length; i++){
+            frames = [];
+            var action_name = this.textureData.actions[i];
+            for(var j = 0; j < this.textureData.frame_num; j++){
 
-        for (var i = 0; i < 3; i++)
-        {
-            var texture = PIXI.Texture.fromFrame("walkdown" + i);
-            walkdownFrames.push(texture);
-            var texture2 = PIXI.Texture.fromFrame("walkleft" + i);
-            walkleftFrames.push(texture2);
-        };
+                
+                var texture = PIXI.Texture.fromFrame(action_name + j);
+                frames.push(texture);
 
-        this.actions["walkdown"] = new PIXI.MovieClip(walkdownFrames);
-        this.actions["walkleft"] = new PIXI.MovieClip(walkleftFrames);
+            }
+            this.actions[action_name] = new PIXI.MovieClip(frames);
+            this.actions[action_name].scale.x = this.textureData.ratio;
+            this.actions[action_name].scale.y = this.textureData.ratio;
+        }
+
 
         this.currAction = this.actions.walkleft;
-        this.currAction.animationSpeed = 0.3;
+        this.currAction.animationSpeed = this.animationSpeed;
 
         this.currAction.position.x = this.x;
         this.currAction.position.y = this.y;
@@ -82,146 +90,180 @@ define(['lib/pixi'], function (PIXI) {
 
 
 
- 
-
-        var that = this;
-
-
-
-        // listen events
-        document.addEventListener("keydown", function(e){
-            console.log('keydown', e.keyCode);
-           
-            switch(e.keyCode){
-                case 37:
-                  that.status.direction = "L";
-                  break;
-                case 38:
-                  that.status.direction = "U";
-                  break;
-                case 39:
-                  that.status.direction = "R";                
-                  break;
-                case 40:
-                  that.status.direction = "D";
-                  break;                 
-            };
-
-            if(that.status.action !== "walk"){
-                that.actionChanged("walk");
-            }
-        });
-
-        document.addEventListener("keyup", function(e){
-            console.log("keyup", e.keyCode);
-            if(that.status.action !== "stand"){
-                that.actionChanged("stand");
-            }
-        });
 
     };
-
-    Role.prototype.test = function(){
-
-        var actionFrames = [];
-
-        for (var i = 0; i < 3; i++)
-        {
-            var texture = PIXI.Texture.fromFrame("walk" + i);
-            actionFrames.push(texture);
-        };
-
-        action = new PIXI.MovieClip(actionFrames);
-
-        action.animationSpeed  = 0.1;
-
-        action.play();
-
-        this.container.addChild(action);
-    },
 
 
     Role.prototype.onDataLoaded = function(){
 
         console.log("role data loaded");
 
-
-        /*var actionFrames = [];
-
-        for (var i = 0; i < 5; i++)
-        {
-            var texture = PIXI.Texture.fromFrame("girl000" + i + ".png");
-            actionFrames.push(texture);
-        };
-
-        action = new PIXI.MovieClip(actionFrames);
-
-        this.container.addChild(action);*/
-
-
-
-
     };
 
 
-    Role.prototype.actionChanged = function(action){
+    Role.prototype.actionChanged = function(action, direction){
 
-        console.log('actionChanged to', action);
+        console.log('actionChanged to', action, direction);
+        this.container.removeChild(this.currAction);
+
+        // update status
         this.status.action = action;
+        this.status.direction = direction;
+        console.log('currAction width', this.currAction.width, this.currAction.height);
 
-        if(this.status.direction === "L"){
-
-            this.container.removeChild(this.currAction);
-            this.currAction = this.actions.walkleft;
-            this.currAction.position.x = this.x;
-            this.currAction.position.y = this.y;
-            this.container.addChild(this.currAction);
-        }
-        if(this.status.direction === "D"){
-
-            this.container.removeChild(this.currAction);
-            this.currAction = this.actions.walkdown;
-            this.currAction.position.x = this.x;
-            this.currAction.position.y = this.y;
-            this.container.addChild(this.currAction);
-        }
-
-        if(action === "walk"){
-            this.currAction.play();
-            //this.spine.state.setAnimationByName("walk", true);
-        } else{
-            this.currAction.stop();
-            //this.spine.state.setAnimationByName("walk", false);
-        }
-
-    };
-
-
-    Role.prototype.update = function(){
-
-        if(this.status.action === "walk"){
-            if(this.status.direction === "L"){
-                this.x -= this.vX;
-            } else if(this.status.direction === "D"){
-                this.y += this.vY;
-            }
+        switch(action){
+            case "walk":
+                if(direction === "L"){
+                    this.currAction = this.actions.walkleft;
+                } else if(direction === "U"){
+                    this.currAction = this.actions.walkup;
+                } else if(direction === "R"){
+                    this.currAction = this.actions.walkright;
+                } else if(direction === "D"){
+                    this.currAction = this.actions.walkdown;
+                }
+                this.currAction.play();
+                break;
+            case "stand":
+                if(direction === "L"){
+                    this.currAction = this.actions.walkleft;
+                } else if(direction === "U"){
+                    this.currAction = this.actions.walkup;
+                } else if(direction === "R"){
+                    this.currAction = this.actions.walkright;
+                } else if(direction === "D"){
+                    this.currAction = this.actions.walkdown;
+                }
+                this.currAction.stop();
+                break;
         }
 
         this.currAction.position.x = this.x;
         this.currAction.position.y = this.y;
+        this.currAction.animationSpeed = this.animationSpeed;
+        this.container.addChild(this.currAction);
 
-        /*var spineBoy = this.spine;
-        if(spineBoy && this.status.action === "walk"){
-            switch(this.status.direction){
-                case "R":
-                  spineBoy.position.x += this.vX;
-                  break;
-
-            }
-        };*/      
 
     };
+
+    Role.prototype.update = function(barriers, scale){
+
+
+        var that = this;
+
+        barriers = barriers || [];
+        scale = scale || 1;
+
+        var pX = that.x + that.currAction.width/2;
+        var pY = that.y + that.currAction.height/2;
+        
+
+        if(this.status.action === "walk"){
+            switch(this.status.direction){
+                case "L":
+                    var isCollision = false;
+                    isCollision = collisionDetect("L");
+                    if(!isCollision) { this.x -= this.vX; }  
+                    break;
+                case "U":
+                    var isCollision = false;
+                    isCollision = collisionDetect("U");
+                    if(!isCollision) { this.y -= this.vY; }                  
+                    break;
+                case "R":
+                    var isCollision = false;
+                    isCollision = collisionDetect("R");
+                    if(!isCollision) { this.x += this.vX; }        
+                    break;
+                case "D":
+                    var isCollision = false;
+                    isCollision = collisionDetect("D");
+                    if(!isCollision) { this.y += this.vY; }              
+                    break;
+
+            }
+
+            this.currAction.position.x = this.x;
+            this.currAction.position.y = this.y;
+
+        }
+
+        function collisionDetect(dire){
+            var space = that.collisionSpace;
+            for(var i = 0; i < barriers.length; i++){
+                
+                if(barriers[i].ellipse){
+                    var r = barriers[i].width/2;
+                    var cX = barriers[i].x + r;
+                    var cY = barriers[i].y + r;
+                    var dist2 = (cX - pX)*(cX - pX) + (cY - pY)*(cY - pY);
+                    if(dire=="L" && pX>cX && dist2 < r*r) return true;
+                    if(dire=="U" && pY>cY && dist2 < r*r) return true;
+                    if(dire=="R" && pX<cX && dist2 < r*r) return true;
+                    if(dire=="D" && pY<cY && dist2 < r*r) return true;
+                }else{
+                    var b = {};
+                    b.x = barriers[i].x;
+                    b.y = barriers[i].y;
+                    b.w = barriers[i].width;
+                    b.h = barriers[i].height;
+                    if(dire=="L" && pY>b.y && pY<b.y+b.h && pX>b.x && pX<b.x+b.w+space)
+                        return true;
+                    if(dire=="U" && pY>b.y && pY<b.y+b.h+space && pX>b.x && pX<b.x+b.w)
+                        return true;
+                    if(dire=="R" && pY>b.y && pY<b.y+b.h && pX>b.x-space && pX<b.x+b.w)
+                        return true;
+                    if(dire=="D" && pY>b.y-space && pY<b.y+b.h && pX>b.x && pX<b.x+b.w)
+                        return true;
+                    
+                }
+            }
+            return false;
+
+        }
+    
+
+    };
+
+    Role.prototype.onkeydown = function(keyCode){
+
+
+        switch(keyCode){
+            case 37:
+                if(this.status.action !== "walk" || this.status.direction !== "L"){
+                    this.actionChanged("walk", "L");
+                }
+                break;
+            case 38:
+                if(this.status.action !== "walk" || this.status.direction !== "U"){
+                    this.actionChanged("walk", "U");
+                }
+                break;
+            case 39:
+                if(this.status.action !== "walk" || this.status.direction !== "R"){
+                    this.actionChanged("walk", "R");
+                }
+                break;
+            case 40:
+                if(this.status.action !== "walk" || this.status.direction !== "D"){
+                    this.actionChanged("walk", "D");
+                }
+                break;
+
+
+        }
+
+    };
+
+    Role.prototype.onkeyup = function(keyCode){
+        if(this.status.action !== "stand"){
+            this.actionChanged("stand", this.status.direction);
+        }
+
+    };
+
 
     return Role;
 
 });
+

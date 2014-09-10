@@ -7,23 +7,58 @@ define(['Scene', 'lib/pixi'], function (Scene, PIXI) {
 
         console.log('start the game');
 
-        this.stage = new PIXI.Stage(0x66FF99);
-        this.renderer = new PIXI.autoDetectRenderer(window.innerWidth, window.innerHeight);
+        this.stage = new PIXI.Stage();
+        this.renderer = new PIXI.autoDetectRenderer(window.innerWidth-50, window.innerHeight);
         document.body.appendChild(this.renderer.view);
         this.renderer.view.style.display = "block";
         this.renderer.view.style.width = "100%";
         this.renderer.view.style.height = "100%";
 
 
-
-        this.scene = new Scene('start', this.stage);
-        console.log(this.scene);
+     
+        this.sceneContainer = new PIXI.DisplayObjectContainer();
+        this.scene = new Scene('start', this.sceneContainer);
         this.scene.enter();
-        
+
+        this.stage.addChild(this.sceneContainer);
+
+
+        this.listenEvents();    
+        this.resizeCanvas();
 
         requestAnimFrame(this.update.bind(this));
 
     };
+
+    App.prototype.listenEvents = function(){
+
+        var that = this;
+
+        // resize canvas
+        window.addEventListener('resize', this.resizeCanvas.bind(this), false);
+
+        // listen events
+        document.addEventListener("keydown", function(e){
+            console.log('keydown', e.keyCode);
+            e.preventDefault();
+            that.scene.onkeydown(e.keyCode);
+        });
+
+        document.addEventListener("keyup", function(e){
+            console.log("keyup", e.keyCode);
+            that.scene.onkeyup(e.keyCode);
+        });
+
+    };
+
+    App.prototype.resizeCanvas = function(){
+        console.log('this', this, this.renderer);
+        this.renderer.view.width = window.innerWidth;
+        this.renderer.view.height = window.innerHeight;
+        this.scene.resizeScene();
+
+    };
+
     App.prototype.update = function(){
 
         this.renderer.render(this.stage);
