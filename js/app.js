@@ -7,8 +7,8 @@ define(['Scene', 'lib/pixi'], function (Scene, PIXI) {
 
         console.log('start the game');
 
-        this.stage = new PIXI.Stage();
-        this.renderer = new PIXI.autoDetectRenderer(window.innerWidth-50, window.innerHeight);
+        this.stage = new PIXI.Stage(0xff90ff);
+        this.renderer = new PIXI.autoDetectRenderer(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.view);
         this.renderer.view.style.display = "block";
         this.renderer.view.style.width = "100%";
@@ -18,13 +18,11 @@ define(['Scene', 'lib/pixi'], function (Scene, PIXI) {
      
         this.sceneContainer = new PIXI.DisplayObjectContainer();
         this.scene = new Scene('start', this.sceneContainer);
-        this.scene.enter();
 
         this.stage.addChild(this.sceneContainer);
 
 
         this.listenEvents();    
-        this.resizeCanvas();
 
         requestAnimFrame(this.update.bind(this));
 
@@ -52,7 +50,6 @@ define(['Scene', 'lib/pixi'], function (Scene, PIXI) {
     };
 
     App.prototype.resizeCanvas = function(){
-        console.log('this', this, this.renderer);
         this.renderer.view.width = window.innerWidth;
         this.renderer.view.height = window.innerHeight;
         this.scene.resizeScene();

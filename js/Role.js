@@ -1,38 +1,31 @@
 define(['lib/pixi'], function (PIXI) {
 
-    var Role = function(properties, container){
+    var Role = function(playerData, container){
 
         this.container = container;
 
-        this.attack = properties.attack || 0;
-        this.hp = properties.hp || 0;
+        //this.attack = properties.attack || 0;
+        //this.hp = properties.hp || 0;
 
-        this.status = {
-            action: "stand",
-            direction: "U"
-        };
+        this.status = playerData.status;
 
-        this.x = properties.x || 210;
-        this.y = properties.y || 435;
+        this.x = playerData.properties.x;
+        this.y = playerData.properties.y;
 
-        this.vX = 3;
-        this.vY = 3;
+        this.vX = playerData.properties.vX;
+        this.vY = playerData.properties.vY;
 
         this.actions = {};
         this.animationSpeed = 0.2;
 
-
-
         // texture 
-        this.textureData = {
-            actions: ["walkdown", "walkleft", "walkright", "walkup"],
-            imgWidth: 100,
-            imgHeight: 100,
-            frame_num: 4,
-            ratio: 0.5
-        };
+        this.textureData = playerData.textureData;
 
         this.collisionSpace = 5;
+
+        this.walkinObjs = [];
+
+        this.init();
 
 
     };
@@ -63,10 +56,11 @@ define(['lib/pixi'], function (PIXI) {
         image.load();
 
         var frames = [];
+        var action_name;
 
         for(var i = 0; i < this.textureData.actions.length; i++){
             frames = [];
-            var action_name = this.textureData.actions[i];
+            action_name = this.textureData.actions[i];
             for(var j = 0; j < this.textureData.frame_num; j++){
 
                 
@@ -79,8 +73,9 @@ define(['lib/pixi'], function (PIXI) {
             this.actions[action_name].scale.y = this.textureData.ratio;
         }
 
+        action_name = "walk" + this.status.direction;
 
-        this.currAction = this.actions.walkup;
+        this.currAction = this.actions[action_name];
         this.currAction.animationSpeed = this.animationSpeed;
 
         this.currAction.position.x = this.x;
@@ -89,21 +84,10 @@ define(['lib/pixi'], function (PIXI) {
         this.container.addChild(this.currAction);
 
 
-
-
-    };
-
-
-    Role.prototype.onDataLoaded = function(){
-
-        console.log("role data loaded");
-
     };
 
 
     Role.prototype.actionChanged = function(action, direction){
-
-        console.log("role container", this.container.x, this.container.y, this.container.width);
 
         console.log('actionChanged to', action, direction);
         this.container.removeChild(this.currAction);
@@ -111,31 +95,17 @@ define(['lib/pixi'], function (PIXI) {
         // update status
         this.status.action = action;
         this.status.direction = direction;
-        console.log('currAction width', this.currAction.width, this.currAction.height);
 
+        var action_name;
         switch(action){
             case "walk":
-                if(direction === "L"){
-                    this.currAction = this.actions.walkleft;
-                } else if(direction === "U"){
-                    this.currAction = this.actions.walkup;
-                } else if(direction === "R"){
-                    this.currAction = this.actions.walkright;
-                } else if(direction === "D"){
-                    this.currAction = this.actions.walkdown;
-                }
+                action_name = "walk" + this.status.direction;
+                this.currAction = this.actions[action_name];
                 this.currAction.play();
                 break;
             case "stand":
-                if(direction === "L"){
-                    this.currAction = this.actions.walkleft;
-                } else if(direction === "U"){
-                    this.currAction = this.actions.walkup;
-                } else if(direction === "R"){
-                    this.currAction = this.actions.walkright;
-                } else if(direction === "D"){
-                    this.currAction = this.actions.walkdown;
-                }
+                action_name = "walk" + this.status.direction;
+                this.currAction = this.actions[action_name];
                 this.currAction.stop();
                 break;
         }
@@ -157,6 +127,22 @@ define(['lib/pixi'], function (PIXI) {
 
         var pX = that.x + that.currAction.width/2;
         var pY = that.y + that.currAction.height/2;
+
+        // walkin events detect
+
+        for(var i = 0; i < this.walkinObjs.length; i++){
+            
+            var obj = this.walkinObjs[i];
+            if(obj.triggered) continue;
+            if(obj.properties && obj.properties.dire === "D"){
+                if(pY>obj.y+obj.height && pX>obj.x && pX<obj.x+obj.width){
+                    console.log('walkinnnnnnnnnnnnnnnnnnnn obj', obj);
+                    obj.callback(obj.args);
+                    obj.triggered = true;
+                }
+                    
+            }
+        }
         
 
         if(this.status.action === "walk"){
@@ -260,6 +246,11 @@ define(['lib/pixi'], function (PIXI) {
         if(this.status.action !== "stand"){
             this.actionChanged("stand", this.status.direction);
         }
+
+    };
+
+    Role.prototype.addWalkinObj = function(obj) {
+        this.walkinObjs.push(obj);
 
     };
 
