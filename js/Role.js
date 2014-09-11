@@ -9,11 +9,11 @@ define(['lib/pixi'], function (PIXI) {
 
         this.status = {
             action: "stand",
-            direction: "R"
+            direction: "U"
         };
 
-        this.x = properties.x || 600;
-        this.y = properties.y || 40;
+        this.x = properties.x || 210;
+        this.y = properties.y || 435;
 
         this.vX = 3;
         this.vY = 3;
@@ -80,7 +80,7 @@ define(['lib/pixi'], function (PIXI) {
         }
 
 
-        this.currAction = this.actions.walkleft;
+        this.currAction = this.actions.walkup;
         this.currAction.animationSpeed = this.animationSpeed;
 
         this.currAction.position.x = this.x;
@@ -102,6 +102,8 @@ define(['lib/pixi'], function (PIXI) {
 
 
     Role.prototype.actionChanged = function(action, direction){
+
+        console.log("role container", this.container.x, this.container.y, this.container.width);
 
         console.log('actionChanged to', action, direction);
         this.container.removeChild(this.currAction);
@@ -146,13 +148,12 @@ define(['lib/pixi'], function (PIXI) {
 
     };
 
-    Role.prototype.update = function(barriers, scale){
+    Role.prototype.update = function(barriers, boundary){
 
 
         var that = this;
 
         barriers = barriers || [];
-        scale = scale || 1;
 
         var pX = that.x + that.currAction.width/2;
         var pY = that.y + that.currAction.height/2;
@@ -162,22 +163,22 @@ define(['lib/pixi'], function (PIXI) {
             switch(this.status.direction){
                 case "L":
                     var isCollision = false;
-                    isCollision = collisionDetect("L");
+                    isCollision = (pX < 0) || collisionDetect("L");
                     if(!isCollision) { this.x -= this.vX; }  
                     break;
                 case "U":
                     var isCollision = false;
-                    isCollision = collisionDetect("U");
+                    isCollision = (pY < 0) || collisionDetect("U");
                     if(!isCollision) { this.y -= this.vY; }                  
                     break;
                 case "R":
                     var isCollision = false;
-                    isCollision = collisionDetect("R");
+                    isCollision = (pX > boundary.width) || collisionDetect("R");
                     if(!isCollision) { this.x += this.vX; }        
                     break;
                 case "D":
                     var isCollision = false;
-                    isCollision = collisionDetect("D");
+                    isCollision = (pY > boundary.height) || collisionDetect("D");
                     if(!isCollision) { this.y += this.vY; }              
                     break;
 

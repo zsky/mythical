@@ -1,10 +1,11 @@
 define(['lib/pixi'], function (PIXI) {
 
-    var Map = function(name, bgContainer, topContainer){
+    var Map = function(name, bgContainer, topContainer, scene){
         this.name = name;
         this.bgContainer = bgContainer;
         this.topContainer = topContainer;
-        this.collisionContainer = this.collisionContainer;
+        this.scene = scene;
+        this.boundary = {};
 
     };
     Map.prototype.init = function() {
@@ -46,14 +47,22 @@ define(['lib/pixi'], function (PIXI) {
                 this.drawLayerData(layer, this.bgContainer);
             } else if(layer.type === "tilelayer" && j === 1){
                 this.drawLayerData(layer, this.topContainer);
-            } else if(layer.type === "objectgroup"){
+            } else if(layer.type === "objectgroup" && layer.name === "collision"){
                 console.log('objectgroup', layer.objects, layer);
                 this.barriers = layer.objects;
                 this.drawCollData(layer.objects, this.topContainer);
+            } else if(layer.type === "objectgroup" && layer.name === "event"){
+                console.log("event layer");
+                this.drawEventData(layer.objects, this.topContainer);
             }
             
         }
         console.log('resizeMap again');
+
+        this.boundary = {
+            width: this.json.width * this.json.tilewidth,
+            height: this.json.height * this.json.tileheight
+        }
 
         this.resizeMap();
 
@@ -98,6 +107,7 @@ define(['lib/pixi'], function (PIXI) {
             var offset = this.json.width * this.json.tilewidth * this.json.adjust.start;
             adjust.ratio = window.innerWidth / actualWidth;
             adjust.offset = offset;
+            adjust.center = this.json.adjust.center;
         } else{
             adjust.ratio = 1;
             adjust.offset = 0;
@@ -154,6 +164,30 @@ define(['lib/pixi'], function (PIXI) {
 
         container.addChild(graphics);
 
+    };
+
+    Map.prototype.drawEventData = function(objects, container) {
+        for(var i = 0; i < objects.length; i++){
+            var obj = objects[i];
+            if(obj.gid){
+                var item = PIXI.Sprite.fromFrame(this.name + obj.gid);
+                item.position.x = obj.x;
+                item.position.y = obj.y;
+                item.setInteractive(true);
+                item.click = this.bindEvent(obj.type, obj.name);
+                container.addChild(item);
+
+            } else{
+                this.scene.addWalkin(obj);
+            }
+        }
+    };
+
+    Map.prototype.bindEvent = function(type, name){
+        var that = this;
+        return function() {
+            that.scene.sayWords(type, name);
+        }
     };
 
 
