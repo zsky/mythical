@@ -23,9 +23,16 @@ define(['lib/pixi'], function (PIXI) {
 
         this.collisionSpace = 5;
 
+        this.barriers = [];
+        this.boundary = {
+            width: window.innerWidth,
+            height: window.innerHeight
+        }
+
         this.walkinObjs = [];
 
         this.init();
+
 
 
     };
@@ -73,6 +80,12 @@ define(['lib/pixi'], function (PIXI) {
             this.actions[action_name].scale.y = this.textureData.ratio;
         }
 
+        
+
+
+    };
+
+    Role.prototype.draw = function() {
         action_name = "walk" + this.status.direction;
 
         this.currAction = this.actions[action_name];
@@ -82,8 +95,6 @@ define(['lib/pixi'], function (PIXI) {
         this.currAction.position.y = this.y;
 
         this.container.addChild(this.currAction);
-
-
     };
 
 
@@ -118,12 +129,13 @@ define(['lib/pixi'], function (PIXI) {
 
     };
 
-    Role.prototype.update = function(barriers, boundary){
+    Role.prototype.update = function(){
 
 
         var that = this;
 
-        barriers = barriers || [];
+        var barriers = this.barriers;
+        var boundary = this.boundary;
 
         var pX = that.x + that.currAction.width/2;
         var pY = that.y + that.currAction.height/2;
@@ -216,22 +228,26 @@ define(['lib/pixi'], function (PIXI) {
 
 
         switch(keyCode){
-            case 37:
+            case 37:  
+            case 65:  //  w
                 if(this.status.action !== "walk" || this.status.direction !== "L"){
                     this.actionChanged("walk", "L");
                 }
                 break;
             case 38:
+            case 87:
                 if(this.status.action !== "walk" || this.status.direction !== "U"){
                     this.actionChanged("walk", "U");
                 }
                 break;
             case 39:
+            case 68:
                 if(this.status.action !== "walk" || this.status.direction !== "R"){
                     this.actionChanged("walk", "R");
                 }
                 break;
             case 40:
+            case 83:
                 if(this.status.action !== "walk" || this.status.direction !== "D"){
                     this.actionChanged("walk", "D");
                 }

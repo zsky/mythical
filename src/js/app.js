@@ -15,9 +15,12 @@ define(['Scene', 'lib/pixi'], function (Scene, PIXI) {
         this.renderer.view.style.height = "100%";
 
 
+        //  TODO: 读取游戏进度
+
+
      
         this.sceneContainer = new PIXI.DisplayObjectContainer();
-        this.scene = new Scene('start', this.sceneContainer);
+        this.scene = new Scene('start', this.sceneContainer, this);
 
         this.stage.addChild(this.sceneContainer);
 
@@ -65,6 +68,19 @@ define(['Scene', 'lib/pixi'], function (Scene, PIXI) {
 
         requestAnimFrame(this.update.bind(this));
        
+    };
+
+    App.prototype.goToScene = function(name) {
+        this.prevContainer = this.sceneContainer;
+        this.prevScene = this.scene;
+        this.stage.removeChild(this.sceneContainer);
+
+        this.sceneContainer = new PIXI.DisplayObjectContainer();
+        this.scene = new Scene(name, this.sceneContainer, this);
+
+        this.stage.addChild(this.sceneContainer);
+
+
     };
     return new App();
 

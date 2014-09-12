@@ -1,10 +1,11 @@
 define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
 
-    var Scene = function(name, container){
+    var Scene = function(name, container, app){
         console.log('new scene', container);
         this.name = name;
         this.container = container;
-
+        this.app = app;
+        
         this.init();
 
     };
@@ -15,11 +16,49 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
             this.layer[i] = new PIXI.DisplayObjectContainer();
             this.container.addChild(this.layer[i]);
         }
+        /*
+        layer[0]: bg,  layer[1]: player, layer[2]: 遮挡人物的物品 layer[3]: 系统层
 
-        var storyLoader = new PIXI.JsonLoader("resource/story/" + this.name + ".json", false);
+        */
+
+        // fake player data
+        var playerData = {
+            properties: {
+                x: 200,
+                y: 415,
+                vX: 3,
+                vY: 3
+            },
+            status: {
+                action: "stand",
+                direction: "U"
+            },
+            textureData: {
+                actions: ["walkD", "walkL", "walkR", "walkU"],
+                imgWidth: 100,
+                imgHeight: 100,
+                frame_num: 4,
+                ratio: 0.5
+            }
+        }
+
+        this.player = new Role(playerData, this.layer[1]);
+       
+
+        this.map = new Map(this.layer[0], this.layer[2], this);
+
+        this.loadStoryData(this.name);
+
+    };
+
+    Scene.prototype.loadStoryData = function(name) {
+
+        this.loading = new PIXI.Sprite.fromImage("resource/img/loading.gif");
+        this.layer[3].addChild(this.loading);
+
+        var storyLoader = new PIXI.JsonLoader("resource/story/" + name + ".json", false);
         storyLoader.on("loaded", this.onStoryLoaded.bind(this));
         storyLoader.load(); 
-
     };
 
     Scene.prototype.onStoryLoaded = function(data) {
@@ -57,6 +96,8 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
             image.load();
         }
 
+        this.layer[3].removeChild(this.loading);
+
         console.log("data loaded, TextureCache", PIXI.TextureCache);
         this.enter();  // enter the scene
 
@@ -87,16 +128,13 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
 
     };
 
-    Scene.prototype.enter = function() {
+    Scene.prototype.enter = function(){
 
-        var playerData = this.storyData.player;
+        this.setData(this.map, {name: this.name, json: this.mapData});
+        this.map.drawAll();
 
-        this.player = new Role(playerData, this.layer[1]);
+        this.player.draw();
        
-
-        this.map = new Map(this.name, this.mapData, this.layer[0], this.layer[2], this);
-
-        
 
         this.resizeScene();  // resize scene
         
@@ -105,10 +143,11 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
 
     Scene.prototype.update = function(){
        
-        this.player && this.player.update(this.map.barriers, this.map.boundary);
+        this.map.loaded && this.player.update();
     };
 
     Scene.prototype.onkeydown = function(keyCode){
+        if(keyCode === 81) console.log('check TextureCache', PIXI.TextureCache);
 
         this.player && this.player.onkeydown(keyCode);
     };
@@ -122,31 +161,38 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
     Scene.prototype.resizeScene = function(){
         console.log('resizeScene');
 
-        var adjust = {
+        var transform = {
             ratio: 1,
-            offset: 0
+            offsetX: 0,
+            offsetY: 0
         };
+
         if(this.mapData){
-            var actualWidth = this.mapData.width * this.mapData.tilewidth * this.mapData.adjust.content;
-            var offset = this.mapData.width * this.mapData.tilewidth * this.mapData.adjust.start;
-            adjust.ratio = window.innerWidth / actualWidth;
-            adjust.offset = offset;
-            adjust.center = this.mapData.adjust.center;
+            var adjust = this.mapData.adjust;
+            // ratio
+            var actualWidth = this.mapData.width * this.mapData.tilewidth * adjust.content.x;
+            var actualHeight = this.mapData.height * this.mapData.tileheight * adjust.content.y;
+            transform.ratio = Math.max(window.innerWidth / actualWidth, window.innerHeight / actualHeight);
+
+            if(adjust.center.x){
+                transform.offsetX = (window.innerWidth - this.container.width) / 2;
+            } else {
+                transform.offsetX = -actualWidth * adjust.start.x;
+            }
+            if(adjust.center.y){
+                transform.offsetY = (window.innerHeight - this.container.height) / 2;
+            } else {
+                transform.offsetY = -actualHeight * adjust.start.y;
+            }
+
         }      
-        console.log("adjust.offset", adjust.offset, adjust.center);
+        console.log("transform", transform);
 
+        this.container.scale.x = transform.ratio;
+        this.container.scale.y = transform.ratio;
 
-        var offsetX = 0;
-        this.container.scale.x = adjust.ratio;
-        this.container.scale.y = adjust.ratio;
-        if(adjust.center){
-            console.log('container width', this.container.width);
-            offsetX = (window.innerWidth - this.container.width) / 2;
-        } else{
-            offsetX = adjust.offset;
-        }
-        console.log("offsetX", offsetX);
-        this.container.x = offsetX;
+        this.container.x = transform.offsetX;
+        this.container.y = transform.offsetY;
 
     };
 
@@ -182,11 +228,24 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
 
     Scene.prototype.goToMap = function(args) {
         console.log('goToMap', args, this);
+        /*this.name = args.mapName;
+        this.loadMapData(args.mapName);
+        //this.map = new Map(args.mapName, this.mapData, this.layer[0], this.layer[2], this);*/
+        this.app.goToScene(args.mapName);
 
     };
 
- 
+    Scene.prototype.setRoleData = function(data) {
+        this.setData(this.player, data);
+    };
 
+ 
+    Scene.prototype.setData = function(obj, data) {
+        var key;
+        for(key in data){
+            obj[key] = data[key];
+        }
+    };
 
     
 

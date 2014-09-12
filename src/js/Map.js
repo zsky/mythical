@@ -1,16 +1,17 @@
 define(['lib/pixi'], function (PIXI) {
 
-    var Map = function(name ,json, bgContainer, topContainer, scene){
-        this.name = name;
-        this.json = json;
+    var Map = function(bgContainer, topContainer, scene){
         this.bgContainer = bgContainer;
         this.topContainer = topContainer;
         this.scene = scene;
 
-        this.init();
+        this.loaded = false;
 
     };
-    Map.prototype.init = function(){
+
+    
+
+    Map.prototype.drawAll = function(){
 
         // draw layer data
 
@@ -23,7 +24,7 @@ define(['lib/pixi'], function (PIXI) {
             } else if(layer.type === "objectgroup" && layer.name === "collision"){
                 console.log('objectgroup', layer.objects, layer);
                 this.barriers = layer.objects;
-                this.drawCollData(layer.objects, this.topContainer);
+                //this.drawCollData(layer.objects, this.topContainer);
             } else if(layer.type === "objectgroup" && layer.name === "event"){
                 console.log("event layer");
                 this.drawEventData(layer.objects, this.topContainer);
@@ -35,6 +36,9 @@ define(['lib/pixi'], function (PIXI) {
             width: this.json.width * this.json.tilewidth,
             height: this.json.height * this.json.tileheight
         }
+
+        this.loaded = true;
+        this.scene.setRoleData({barriers: this.barriers, boundary: this.boundary});
 
       
          
