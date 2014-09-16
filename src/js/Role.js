@@ -1,8 +1,9 @@
 define(['lib/pixi'], function (PIXI) {
 
-    var Role = function(playerData, container){
+    var Role = function(playerData, container, scene){
 
         this.container = container;
+        this.scene = scene;
 
         //this.attack = properties.attack || 0;
         //this.hp = properties.hp || 0;
@@ -16,18 +17,16 @@ define(['lib/pixi'], function (PIXI) {
         this.vY = playerData.properties.vY;
 
         this.actions = {};
-        this.animationSpeed = 0.2;
+        this.animationSpeed = 0.05;
 
         // texture 
         this.textureData = playerData.textureData;
 
         this.collisionSpace = 5;
+        this.mapSpace = 30;
 
         this.barriers = [];
-        this.boundary = {
-            width: window.innerWidth,
-            height: window.innerHeight
-        }
+       
 
         this.walkinObjs = [];
 
@@ -88,6 +87,8 @@ define(['lib/pixi'], function (PIXI) {
     Role.prototype.draw = function() {
         action_name = "walk" + this.status.direction;
 
+        this.currAction  && this.container.removeChild(this.currAction);
+
         this.currAction = this.actions[action_name];
         this.currAction.animationSpeed = this.animationSpeed;
 
@@ -135,7 +136,7 @@ define(['lib/pixi'], function (PIXI) {
         var that = this;
 
         var barriers = this.barriers;
-        var boundary = this.boundary;
+        var boundary = this.boundary || {};
 
         var pX = that.x + that.currAction.width/2;
         var pY = that.y + that.currAction.height/2;
@@ -155,29 +156,30 @@ define(['lib/pixi'], function (PIXI) {
                     
             }
         }
-        
 
+
+        // collsion detect  && boundary detect
         if(this.status.action === "walk"){
             switch(this.status.direction){
                 case "L":
                     var isCollision = false;
-                    isCollision = (pX < 0) || collisionDetect("L");
-                    if(!isCollision) { this.x -= this.vX; }  
+                    isCollision = (pX < this.mapSpace) || collisionDetect("L");
+                    if(!isCollision) { this.x -= this.vX; this.scene.moveMap("L", this.vX);}  
                     break;
                 case "U":
                     var isCollision = false;
-                    isCollision = (pY < 0) || collisionDetect("U");
-                    if(!isCollision) { this.y -= this.vY; }                  
+                    isCollision = (pY < this.mapSpace) || collisionDetect("U");
+                    if(!isCollision) { this.y -= this.vY; this.scene.moveMap("U", this.vY);}                  
                     break;
                 case "R":
                     var isCollision = false;
-                    isCollision = (pX > boundary.width) || collisionDetect("R");
-                    if(!isCollision) { this.x += this.vX; }        
+                    isCollision = (pX > this.boundary.width - this.mapSpace) ||  collisionDetect("R");
+                    if(!isCollision) { this.x += this.vX; this.scene.moveMap("R", this.vX);}        
                     break;
                 case "D":
                     var isCollision = false;
-                    isCollision = (pY > boundary.height) || collisionDetect("D");
-                    if(!isCollision) { this.y += this.vY; }              
+                    isCollision = (pY > this.boundary.height - this.mapSpace) || collisionDetect("D");
+                    if(!isCollision) { this.y += this.vY; this.scene.moveMap("D", this.vY);}              
                     break;
 
             }

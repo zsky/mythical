@@ -46,7 +46,6 @@ define(['Scene', 'lib/pixi'], function (Scene, PIXI) {
         });
 
         document.addEventListener("keyup", function(e){
-            console.log("keyup", e.keyCode);
             that.scene.onkeyup(e.keyCode);
         });
 
@@ -70,18 +69,6 @@ define(['Scene', 'lib/pixi'], function (Scene, PIXI) {
        
     };
 
-    App.prototype.goToScene = function(name) {
-        this.prevContainer = this.sceneContainer;
-        this.prevScene = this.scene;
-        this.stage.removeChild(this.sceneContainer);
-
-        this.sceneContainer = new PIXI.DisplayObjectContainer();
-        this.scene = new Scene(name, this.sceneContainer, this);
-
-        this.stage.addChild(this.sceneContainer);
-
-
-    };
     return new App();
 
 
