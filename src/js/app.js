@@ -5,7 +5,7 @@ define(['Scene', 'lib/pixi'], function (Scene, PIXI) {
     };
     App.prototype.init = function(){
 
-        console.log('start the game');
+        console.log('start the game, 0.1');
 
         this.stage = new PIXI.Stage(0xff90ff);
         this.renderer = new PIXI.autoDetectRenderer(window.innerWidth, window.innerHeight);
@@ -20,7 +20,7 @@ define(['Scene', 'lib/pixi'], function (Scene, PIXI) {
 
      
         this.sceneContainer = new PIXI.DisplayObjectContainer();
-        this.scene = new Scene('start', this.sceneContainer, this);
+        this.scene = new Scene('intro', this.sceneContainer, this);
 
         this.stage.addChild(this.sceneContainer);
 

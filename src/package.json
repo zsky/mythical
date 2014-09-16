@@ -1,6 +1,6 @@
 {
-  "name": "start",
-  "version": "0.0.0",
+  "name": "rpg",
+  "version": "0.x",
   "description": "start my rpg game.",
   "main": "index.js",
   "scripts": {
