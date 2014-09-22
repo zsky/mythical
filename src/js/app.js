@@ -20,7 +20,7 @@ define(['Scene', 'lib/pixi'], function (Scene, PIXI) {
 
      
         this.sceneContainer = new PIXI.DisplayObjectContainer();
-        this.scene = new Scene('intro', this.sceneContainer, this);
+        this.scene = new Scene('start', this.sceneContainer, this);
 
         this.stage.addChild(this.sceneContainer);
 

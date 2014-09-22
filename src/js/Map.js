@@ -31,14 +31,14 @@ define(['lib/pixi'], function (PIXI) {
 
         for(var j = 0; j < this.json.layers.length; j++){
             var layer = this.json.layers[j];
-            if(layer.type === "tilelayer" && j === 0){
+            if(layer.type === "tilelayer" && layer.name !== "top"){
                 this.drawLayerData(layer, this.bgContainer);
-            } else if(layer.type === "tilelayer" && j === 1){
+            } else if(layer.type === "tilelayer" && layer.name === "top"){
                 this.drawLayerData(layer, this.topContainer);
             } else if(layer.type === "objectgroup" && layer.name === "collision"){
                 console.log('objectgroup', layer.objects, layer);
                 this.barriers = layer.objects;
-                this.drawCollData(layer.objects, this.topContainer);
+                //this.drawCollData(layer.objects, this.topContainer);
             } else if(layer.type === "objectgroup" && layer.name === "event"){
                 console.log("event layer");
                 this.drawEventData(layer.objects, this.topContainer);
@@ -104,31 +104,96 @@ define(['lib/pixi'], function (PIXI) {
     };
 
     Map.prototype.drawEventData = function(objects, container) {
+        var g = new PIXI.Graphics();
+        g.lineStyle(1, 0x0393FF, 1);
         for(var i = 0; i < objects.length; i++){
             var obj = objects[i];
-            if(obj.gid){
-                var item = PIXI.Sprite.fromFrame(this.name + obj.gid);
-                item.position.x = obj.x;
-                item.position.y = obj.y;
-                item.setInteractive(true);
-                item.click = this.bindEvent(obj.type, obj.name);
-                container.addChild(item);
-
-            } else{
-                var g = new PIXI.Graphics();
-                g.lineStyle(1, 0x0393FF, 1);
-                g.drawRect(obj.x, obj.y, obj.width, obj.height);
-                this.scene.addWalkin(obj);
-                container.addChild(g);
+            if(obj.type === "mark") continue;
+            if(obj.properties.frame_num){
+                this.initAnimation(obj, container);
+            }else{
+                obj.action = new PIXI.Sprite.fromImage(obj.properties.src);
+                obj.action.position.x = obj.x;
+                obj.action.position.y = obj.y;
+                container.addChild(obj.action);
             }
+
+            g.drawRect(obj.x, obj.y, obj.width, obj.height);
+            this.barriers.push({x: obj.x, y: obj.y, width: obj.width, height: obj.height});
+            scope = {
+                x: obj.x - obj.width/2,
+                y: obj.y - obj.height/2,
+                width: obj.width*2,
+                height: obj.height*2
+            }
+            g.drawRect(scope.x, scope.y, scope.width, scope.height);
+            obj.scope = scope;
+            this.scene.addWalkin(obj);
+
+            obj.action.interactive = true;
+            obj.action.click = this.bindEvent(obj);
+            
         }
+        container.addChild(g);
     };
 
-    Map.prototype.bindEvent = function(type, name){
+    Map.prototype.initAnimation = function(obj, container){
+        var image = new PIXI.ImageLoader(obj.properties.src);
+        image.on("loaded", function(){
+            console.log('image loaded');
+        });
+
+        var baseTexture = image.texture.baseTexture;
+        var imgWidth = obj.properties.width,
+            imgHeight = obj.properties.height;
+        var frames = [];
+        for(var i = 0; i < obj.properties.frame_num; i++){
+            PIXI.TextureCache[obj.name+i] = new PIXI.Texture(baseTexture, {
+                                               x: 0,
+                                               y: i*imgHeight,
+                                               width: imgWidth,
+                                               height: imgHeight
+                                           });
+            frames.push(PIXI.TextureCache[obj.name+i]);
+        };
+        obj.action = new PIXI.MovieClip(frames);
+        
+        image.load();
+
+        obj.action.position.x = obj.x;
+        obj.action.position.y = obj.y;
+        obj.action.animationSpeed = 0.2;
+        obj.action.loop = false;
+        //obj.action.play();
+        container.addChild(obj.action);
+
+    };
+
+    Map.prototype.bindEvent = function(obj){
+        console.log('bindEventttttttttttttt', obj);
         var that = this;
-        return function() {
-            that.scene.sayWords(type, name);
+        switch(obj.type){
+            case "goods": 
+                return function() {
+                    console.log("click it", "activated", obj.activated);
+                    if(!obj.activated) return;
+                    obj.action.play();
+                    obj.activated = false;
+                    obj.triggered = true;
+                    console.log('gain', obj.properties.gain);
+                }
+                break;
+            case "npc":
+                return function() {
+                    console.log("click it", "activated", obj.activated);
+                    if(!obj.activated) return;
+                    obj.activated = false;
+                    obj.triggered = true;
+                }
+                break;
+
         }
+
     };
 
 

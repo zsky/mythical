@@ -198,6 +198,7 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
         if(keyCode === 79){  // o
             console.log("check layer[2] children", this.layer[2].children);
             console.log("check player", this.player.x, this.player.y);
+            console.log("player walkinObjs", this.player.walkinObjs);
         }
         if(keyCode === 80){  // p
             if(this.layer[2].visible){

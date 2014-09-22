@@ -147,14 +147,21 @@ define(['lib/pixi'], function (PIXI) {
             
             var obj = this.walkinObjs[i];
             if(obj.triggered) continue;
-            if(obj.properties && obj.properties.dire === "D"){
+            var scope = obj.scope;
+            if(pY>scope.y && pY<scope.y+scope.height && pX>scope.x && pX<scope.x+scope.width){
+                obj.activated = true;
+            }else{
+                obj.activated = false;
+            }
+            /*if(obj.properties && obj.properties.dire === "D"){
+                console.log("cao nim ma", pX, pY, obj.x, obj.y, obj.width, obj.height);
                 if(pY>obj.y+obj.height && pX>obj.x && pX<obj.x+obj.width){
                     console.log('walkinnnnnnnnnnnnnnnnnnnn obj', obj);
                     obj.callback(obj.args);
                     obj.triggered = true;
                 }
                     
-            }
+            }*/
         }
 
 
