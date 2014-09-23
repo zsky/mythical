@@ -108,11 +108,22 @@ define(['lib/pixi'], function (PIXI) {
         g.lineStyle(1, 0x0393FF, 1);
         for(var i = 0; i < objects.length; i++){
             var obj = objects[i];
-            if(obj.type === "mark") continue;
+            if(obj.type === "mark"){
+                this.scene.addWalkin(obj);
+                g.drawRect(obj.x, obj.y, obj.width, obj.height);
+                continue;
+            }
             if(obj.properties.frame_num){
-                this.initAnimation(obj, container);
+                this.initAnimation(obj, container);   
             }else{
-                obj.action = new PIXI.Sprite.fromImage(obj.properties.src);
+                var baseTexture = new PIXI.Texture.fromImage(obj.properties.src);
+                PIXI.TextureCache[obj.name+"0"] = new PIXI.Texture(baseTexture, {
+                                                   x: obj.properties.startX,
+                                                   y: obj.properties.startY,
+                                                   width: obj.properties.width,
+                                                   height: obj.properties.height
+                                               });
+                obj.action = new PIXI.Sprite.fromFrame(obj.name+"0");
                 obj.action.position.x = obj.x;
                 obj.action.position.y = obj.y;
                 container.addChild(obj.action);
@@ -131,10 +142,20 @@ define(['lib/pixi'], function (PIXI) {
             this.scene.addWalkin(obj);
 
             obj.action.interactive = true;
-            obj.action.click = this.bindEvent(obj);
+            obj.action.click = this.bindEvent(obj, "click");
+
+            var canvas = document.getElementsByTagName("canvas")[0];
+
+            obj.action.mouseover = this.bindEvent(obj, "mouseover");
+            obj.action.mouseout = (function(){             
+                return function(){
+                    console.log("mouseout");
+                    canvas.style.cursor = "default";
+                }
+            })();
             
         }
-        container.addChild(g);
+        //container.addChild(g);
     };
 
     Map.prototype.initAnimation = function(obj, container){
@@ -169,8 +190,18 @@ define(['lib/pixi'], function (PIXI) {
 
     };
 
-    Map.prototype.bindEvent = function(obj){
+    Map.prototype.bindEvent = function(obj, eventType){
         console.log('bindEventttttttttttttt', obj);
+        if(eventType === "mouseover"){
+            var canvas = document.getElementsByTagName("canvas")[0];
+            return function(){
+                console.log("mouseover", obj);
+                if(obj.activated){
+                    canvas.style.cursor = obj.properties.cursor || "pointer";
+                }
+            }
+        }
+
         var that = this;
         switch(obj.type){
             case "goods": 
@@ -187,6 +218,7 @@ define(['lib/pixi'], function (PIXI) {
                 return function() {
                     console.log("click it", "activated", obj.activated);
                     if(!obj.activated) return;
+                    that.scene.enterDialog(obj.type, obj.name);
                     obj.activated = false;
                     obj.triggered = true;
                 }

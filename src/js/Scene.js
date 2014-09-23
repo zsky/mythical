@@ -23,6 +23,13 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
 
         */
 
+        this.dialogBox = document.getElementById("dialogBox");
+
+        /*this.dialog = new PIXI.Text("");
+        this.dialog.position.x = 90;
+        this.dialog.position.y = 430;
+        this.layer[3].addChild(this.dialog);*/
+
         // fake player data
         var playerData = {
             properties: {
@@ -216,6 +223,13 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
             }
         }
 
+        if(this.mode === "dialog"){
+            if(keyCode === 32){
+                this.sayWords();
+
+            }
+        }
+
         this.player && this.player.onkeydown(keyCode);
 
     };
@@ -274,20 +288,27 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
 
     };
 
-    Scene.prototype.sayWords = function(type, name){
-        console.log('scene, sayWords', type, name, this.storyData);
-        switch(type){
-            case "npc":
-                var npc = this.storyData.npc[name];
-                if(npc){
-                    var words = npc.words;
-                    console.log("say it", words[0]);
-                    var text = new PIXI.Text(words[0]);
-                    text.position.x = 90;
-                    text.position.y = 450;
-                    this.layer[3].addChild(text);
-                }
+    Scene.prototype.enterDialog = function(type, name) {
+        this.mode = "dialog";
+        var npc = this.storyData.npc[name];
+        this.currDialog = {
+            words: npc.words
         }
+        this.sayWords();
+    };
+
+    Scene.prototype.sayWords = function(){
+        var word = this.currDialog.words.shift();
+        if(word){
+            this.dialogBox.innerHTML = word;
+            this.dialogBox.style.display = "block";
+            //this.dialog.setText(word);
+        }else{
+            console.log("dialog over");
+            this.dialogBox.style.display = "none";
+            this.mode = "normal";
+        }
+        
     };
 
     Scene.prototype.addWalkin = function(obj) {

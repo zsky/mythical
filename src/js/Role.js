@@ -147,21 +147,49 @@ define(['lib/pixi'], function (PIXI) {
             
             var obj = this.walkinObjs[i];
             if(obj.triggered) continue;
-            var scope = obj.scope;
-            if(pY>scope.y && pY<scope.y+scope.height && pX>scope.x && pX<scope.x+scope.width){
-                obj.activated = true;
-            }else{
-                obj.activated = false;
-            }
-            /*if(obj.properties && obj.properties.dire === "D"){
-                console.log("cao nim ma", pX, pY, obj.x, obj.y, obj.width, obj.height);
-                if(pY>obj.y+obj.height && pX>obj.x && pX<obj.x+obj.width){
-                    console.log('walkinnnnnnnnnnnnnnnnnnnn obj', obj);
-                    obj.callback(obj.args);
-                    obj.triggered = true;
+
+            if(obj.type === "mark"){
+                var dire = obj.properties.dire;
+                if(this.status.direction !== dire) continue;
+
+                switch(dire){
+                    case "U":
+                        if(pX>obj.x && pX<obj.x+obj.width && pY<obj.y){
+                            obj.callback(obj.args);
+                            obj.triggered = true;
+                        }
+                        break;
+                    case "D":
+                        if(pX>obj.x && pX<obj.x+obj.width && pY>obj.y){
+                            console.log("rolejs walkin obj args", obj.args, obj);
+                            obj.callback(obj.args);
+                            obj.triggered = true;
+                        }
+                        break;
+                    case "R":
+                        if(pY>obj.y && pY<obj.y+obj.height && pX>obj.x){
+                            obj.callback(obj.args);
+                            obj.triggered = true;
+                        }
+                        break;
+                    case "L":
+                        if(pY>obj.y && pY<obj.y+obj.height && pX<obj.x){
+                            obj.callback(obj.args);
+                            obj.triggered = true;
+                        }
+                        break;
                 }
-                    
-            }*/
+            }else{
+                var scope = obj.scope;
+                if(pY>scope.y && pY<scope.y+scope.height && pX>scope.x && pX<scope.x+scope.width){
+                    obj.activated = true;
+                }else{
+                    obj.activated = false;
+                }
+            }
+
+            
+
         }
 
 

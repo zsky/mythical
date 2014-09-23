@@ -10,11 +10,30 @@
             border: 0;
             overflow: hidden;
         }
+
+        #dialogBox{
+            position: absolute;
+            top: 80%;
+            left: 30%;
+            height: 12%;
+            width: 40%;
+            overflow: auto;
+            background-image: url(resource/img/dialog_bg.png);
+            font-size: 17px;
+            color: #410fb8;
+            padding: 10px 20px;
+            border-radius: 10px;
+            z-index: 3;
+            display: none;
+        }
+
     </style>
 </head>
 <body>
 
     <script data-main="js/main" src="js/lib/require.js"></script>
+    <div id="dialogBox">
+    </div>
     
 </body>
 </html>
