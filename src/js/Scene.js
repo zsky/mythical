@@ -25,10 +25,6 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
 
         this.dialogBox = document.getElementById("dialogBox");
 
-        /*this.dialog = new PIXI.Text("");
-        this.dialog.position.x = 90;
-        this.dialog.position.y = 430;
-        this.layer[3].addChild(this.dialog);*/
 
         // fake player data
         var playerData = {
@@ -88,11 +84,12 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
             };
 
             this.resizeScene();
-            /*var image = new PIXI.ImageLoader(this.storyData.rollImg.path);
-            //image.on("loaded", function(){
-                console.log('roll image loaded');
-            });
-            image.load();*/
+
+            this.app.showMenu(this.rollImg.menu);
+            this.rollImg = "";
+            this.mapData = "";
+            this.clearLayers(this.layer);
+
         }else{
             this.loadMapData(this.storyData.map);
         }
@@ -219,7 +216,18 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
         console.log("scene onkeydown", this);
         if(keyCode === 27){
             if(this.rollImg){
-                this.goToMap(this.rollImg);
+                console.log("", this.rollImg);
+                if(this.rollImg.menu){ 
+                    this.app.showMenu(this.rollImg.menu);
+                    this.rollImg = "";
+                    this.mapData = "";
+                    this.clearLayers(this.layer);
+
+                }else{
+                    this.goToMap(this.rollImg);
+                }
+
+                //
             }
         }
 
@@ -245,16 +253,38 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
 
         var transform = {
             ratio: 1,
-            offsetX: 0,
-            offsetY: 0
+            offset: {
+                x: 0,
+                y: 0
+            }
         };
 
         console.log('haaa', this.container.x, this.container.width);
 
         if(this.mapData){
             var adjust = this.mapData.adjust;
+            var actualHeight = this.mapData.height * this.mapData.tileheight * adjust.contentY;
+            transform.ratio = window.innerHeight / actualHeight;
+            this.container.scale.x = transform.ratio;
+            this.container.scale.y = transform.ratio;
+
+            transform.offset = adjust.start;
+
+            if(adjust.centerX){
+                transform.offset.x = (window.innerWidth - this.container.width) / 2;
+            } else if(adjust.rightX){
+                var mapWidth = this.mapData.width * this.mapData.tilewidth;
+                transform.offset.x = window.innerWidth - mapWidth * transform.ratio;
+            }
+
+            this.container.x = transform.offset.x;
+            this.container.y = transform.offset.y;
+
+            
+
+            
             // ratio
-            var mapWidth = this.mapData.width * this.mapData.tilewidth; 
+            /*var mapWidth = this.mapData.width * this.mapData.tilewidth; 
             var mapHeight = this.mapData.height * this.mapData.tileheight;
             var actualWidth = mapWidth * adjust.content.x;
             var actualHeight = mapHeight * adjust.content.y;
@@ -279,7 +309,7 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
             }
 
             this.container.x = transform.offsetX;
-            this.container.y = transform.offsetY;
+            this.container.y = transform.offsetY;*/
 
         }      
         console.log("final transform", transform, this.container.width, this.container.x); 
@@ -287,6 +317,7 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
         return transform;   
 
     };
+
 
     Scene.prototype.enterDialog = function(type, name) {
         this.mode = "dialog";
@@ -370,6 +401,17 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
                 break;
         }
         return true;
+    };
+
+    Scene.prototype.clearLayers = function(layers){
+        this.container.x = 0;
+        this.container.y = 0;
+        for(var i = 0; i < layers.length; i++){
+            var layer = layers[i];
+            for (var j = layer.children.length - 1; j >= 0; j--) {
+                layer.removeChild(layer.children[j]);
+            };
+        }
     };
 
     Scene.prototype.setRoleData = function(data) {
