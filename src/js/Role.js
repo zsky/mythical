@@ -1,6 +1,6 @@
 define(['lib/pixi'], function (PIXI) {
 
-    var Role = function(playerData, container, scene){
+    var Role = function(container, scene){
 
         this.container = container;
         this.scene = scene;
@@ -8,7 +8,7 @@ define(['lib/pixi'], function (PIXI) {
         //this.attack = properties.attack || 0;
         //this.hp = properties.hp || 0;
 
-        this.status = playerData.status;
+        /*this.status = playerData.status;
 
         this.x = playerData.properties.x;
         this.y = playerData.properties.y;
@@ -16,11 +16,13 @@ define(['lib/pixi'], function (PIXI) {
         this.vX = playerData.properties.vX;
         this.vY = playerData.properties.vY;
 
-        this.actions = {};
+        
         this.animationSpeed = 0.05;
 
         // texture 
-        this.textureData = playerData.textureData;
+        this.textureData = playerData.textureData;*/
+
+        this.actions = {};
 
         this.collisionSpace = 5;
         this.mapSpace = 30;
@@ -30,15 +32,14 @@ define(['lib/pixi'], function (PIXI) {
 
         this.walkinObjs = [];
 
-        this.init();
 
 
 
     };
 
-    Role.prototype.init = function(){
+    Role.prototype.load = function(){
 
-        var image = new PIXI.ImageLoader("resource/role/qiangu.png");
+        var image = new PIXI.ImageLoader(this.textureData.path);
         image.on("loaded", function(){
             console.log('image loaded');
         });
@@ -79,17 +80,21 @@ define(['lib/pixi'], function (PIXI) {
             this.actions[action_name].scale.y = this.textureData.ratio;
         }
 
+        this.draw();
+
         
 
 
     };
 
     Role.prototype.draw = function() {
+
         action_name = "walk" + this.status.direction;
 
         this.currAction  && this.container.removeChild(this.currAction);
 
         this.currAction = this.actions[action_name];
+        console.log("drawit", this.actions, action_name);
         this.currAction.animationSpeed = this.animationSpeed;
 
         this.currAction.position.x = this.x;
@@ -305,6 +310,22 @@ define(['lib/pixi'], function (PIXI) {
     Role.prototype.addWalkinObj = function(obj) {
         this.walkinObjs.push(obj);
 
+    };
+
+    Role.prototype.setData = function(data) {
+        this.textureData = data.textureData;
+        this.status = {
+            action: "stand",
+            direction: data.properties.dire
+        }
+        this.x = data.properties.x;
+        this.y = data.properties.y;
+
+        this.vX = data.properties.vX;
+        this.vY = data.properties.vY;
+        
+        this.animationSpeed = 0.05;
+        this.load();
     };
 
 

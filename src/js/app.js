@@ -1,4 +1,4 @@
-define(['Scene', 'System', 'lib/pixi'], function (Scene, System, PIXI) {
+define(['Scene', 'System', 'Record', 'lib/pixi'], function (Scene, System, Record, PIXI) {
 
     var App = function(){
 
@@ -14,19 +14,22 @@ define(['Scene', 'System', 'lib/pixi'], function (Scene, System, PIXI) {
         this.renderer.view.style.width = "100%";
         this.renderer.view.style.height = "100%";
 
+        this.record = new Record(this);
 
-
-
-        this.mode = "normal";
      
         this.sceneContainer = new PIXI.DisplayObjectContainer();
-        this.scene = new Scene('intro', this.sceneContainer, this);
+        this.scene = new Scene(this.sceneContainer, this);
 
-        this.sysContainer = new PIXI.DisplayObjectContainer();
-        this.system = new System(this.sysContainer, this);
+        //this.sysContainer = new PIXI.DisplayObjectContainer();
+        //this.system = new System(this.sysContainer, this);
+        this.system = new System(this);
 
         this.stage.addChild(this.sceneContainer);
-        this.stage.addChild(this.sysContainer);
+        //this.stage.addChild(this.sysContainer);
+
+        this.mode = "system";
+        this.system.showIntro();
+        //this.newGame();
 
 
         this.listenEvents();    
@@ -48,6 +51,8 @@ define(['Scene', 'System', 'lib/pixi'], function (Scene, System, PIXI) {
             e.preventDefault();
             if(that.mode === "normal"){
                 that.scene.onkeydown(e.keyCode);
+            } else if(that.mode === "system"){
+                that.system.onkeydown(e.keyCode);
             }
             
         });
@@ -55,6 +60,8 @@ define(['Scene', 'System', 'lib/pixi'], function (Scene, System, PIXI) {
         document.addEventListener("keyup", function(e){
             if(that.mode === "normal"){
                 that.scene.onkeyup(e.keyCode);
+            } else if(that.mode === "system"){
+                that.system.onkeydown(e.keyCode);
             }
             
         });
@@ -64,8 +71,11 @@ define(['Scene', 'System', 'lib/pixi'], function (Scene, System, PIXI) {
     App.prototype.resizeCanvas = function(){
         this.renderer.view.width = window.innerWidth;
         this.renderer.view.height = window.innerHeight;
-        this.scene.resizeScene();
-        this.system.resizeSys();
+        if(this.mode === "normal"){
+            this.scene.resizeScene();
+        } else if(this.mode === "system"){
+            this.system.resizeSys();
+        }
 
     };
 
@@ -73,8 +83,11 @@ define(['Scene', 'System', 'lib/pixi'], function (Scene, System, PIXI) {
 
         this.renderer.render(this.stage);
 
-        this.scene.update();
-
+        if(this.mode === "normal"){
+            this.scene.update();
+        } else if(this.mode === "system"){
+            this.system.update();
+        }
 
         requestAnimFrame(this.update.bind(this));
        
@@ -87,37 +100,28 @@ define(['Scene', 'System', 'lib/pixi'], function (Scene, System, PIXI) {
     App.prototype.newGame = function() {
         console.log('new game');
         //  TODO: 读取游戏进度
-        // fake player data
-        var playerData = {
-            properties: {
-                x: 200,
-                y: 415,
-                vX: 3,
-                vY: 3,
-                dire: "U",
-                HP: 100,
-                MP: 100,
-                rank: 1
-            },
-            textureData: {
-                actions: ["walkD", "walkL", "walkR", "walkU"],
-                imgWidth: 100,
-                imgHeight: 100,
-                frame_num: 4,
-                ratio: 0.5
-            }
-        }
-        var args = {
-            mapName: "start"
+        this.gameData = this.record.getData("default");
+        var playerData = this.gameData.player;
+
+        this.scene.goToMap(this.gameData);
+        this.scene.initPlayer(playerData);
+
+        this.mode = "normal";
+
+
+        var data = {
+            HP: playerData.properties.HP,
+            HP_MAX: playerData.properties.HP_MAX,
+            MP: playerData.properties.MP,
+            MP_MAX: playerData.properties.MP_MAX,
+            EXP: playerData.properties.EXP,
+            EXP_MAX: playerData.properties.EXP_MAX,
+            rank: playerData.properties.rank,
+            imgPath: playerData.properties.avatar
         }
 
-        this.scene.goToMap(args);
-        var data = {
-            imgPath: "resource/avatar/qiangu.jpg",
-            rank: 1,
-            HP: 100,
-            MP: 100
-        }
+        this.system.gameData = this.gameData;
+
         this.system.showAvatar(data);
     };
 

@@ -1,8 +1,7 @@
 define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
 
-    var Scene = function(name, container, app){
-        console.log('new scene', container);
-        this.name = name;
+    var Scene = function(container, app){
+
         this.container = container;
         this.app = app;
 
@@ -14,45 +13,18 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
 
     Scene.prototype.init = function(){
         this.layer = [];
-        for(var i = 0; i < 4; i++){
+        for(var i = 0; i < 3; i++){
             this.layer[i] = new PIXI.DisplayObjectContainer();
             this.container.addChild(this.layer[i]);
         }
         /*
-        layer[0]: bg,  layer[1]: player, layer[2]: 遮挡人物的物品 layer[3]: 系统层
-
+        layer[0]: bg,  layer[1]: player, layer[2]: 遮挡人物的物品 
         */
 
         this.dialogBox = document.getElementById("dialogBox");
 
-
-        // fake player data
-        var playerData = {
-            properties: {
-                x: 200,
-                y: 415,
-                vX: 3,
-                vY: 3
-            },
-            status: {
-                action: "stand",
-                direction: "U"
-            },
-            textureData: {
-                actions: ["walkD", "walkL", "walkR", "walkU"],
-                imgWidth: 100,
-                imgHeight: 100,
-                frame_num: 4,
-                ratio: 0.5
-            }
-        }
-
-        this.player = new Role(playerData, this.layer[1], this);
-       
-
+        this.player = new Role(this.layer[1], this);
         this.map = new Map(this.layer[0], this.layer[2], this);
-
-        this.loadStoryData(this.name);
 
     };
 
@@ -70,32 +42,8 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
         console.log("story data loaded", data);
         this.storyData = data.content.json;
 
-        // load roll img
-        if(this.storyData.rollImg){
-            this.rollImg = this.storyData.rollImg;
-            var img = new PIXI.Sprite.fromImage(this.rollImg.path);
-            this.layer[0].addChild(img);
-            this.mapData = {
-                adjust: this.storyData.adjust,
-                tilewidth: 100,
-                tileheight: 100,
-                width: this.storyData.imgWidth/100,
-                height: this.storyData.imgHeight/100
-            };
-
-            this.resizeScene();
-
-            this.app.showMenu(this.rollImg.menu);
-            this.rollImg = "";
-            this.mapData = "";
-            this.clearLayers(this.layer);
-
-        }else{
-            this.loadMapData(this.storyData.map);
-        }
-        
-
-         
+        this.loadMapData(this.storyData.map);
+     
 
     };
 
@@ -169,21 +117,11 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
         this.map.drawAll();
 
         this.resizeScene();  // resize scene
-
-
-        //this.setData(this.player, {x: transform.offsetX + 50, y: transform.offsetY + 50});
-        this.setData(this.player, this.mapData.adjust.player);
-
-        this.player.draw();
-       
-
-        
-        
+             
          
     };
 
     Scene.prototype.update = function(){
-        this.rollImg && this.moveMap(this.rollImg.dire, this.rollImg.speed);
        
         this.map.loaded && this.player.update();
     };
@@ -280,41 +218,7 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
             this.container.x = transform.offset.x;
             this.container.y = transform.offset.y;
 
-            
-
-            
-            // ratio
-            /*var mapWidth = this.mapData.width * this.mapData.tilewidth; 
-            var mapHeight = this.mapData.height * this.mapData.tileheight;
-            var actualWidth = mapWidth * adjust.content.x;
-            var actualHeight = mapHeight * adjust.content.y;
-            transform.ratio = Math.max(window.innerWidth / actualWidth, window.innerHeight / actualHeight);
-
-            this.container.scale.x = transform.ratio;
-            this.container.scale.y = transform.ratio;
-
-            if(adjust.center.x){
-                transform.offsetX = (window.innerWidth - this.container.width) / 2;
-                console.log('transform offsetX', window.innerWidth, this.container.width);
-            } else if(adjust.right && adjust.right.x){
-                transform.offsetX = window.innerWidth - mapWidth * transform.ratio;
-            } else {
-                console.log("transform x", mapWidth, adjust.start.x);
-                transform.offsetX = -mapWidth * adjust.start.x * transform.ratio;
-            }
-            if(adjust.center.y){
-                transform.offsetY = (window.innerHeight - this.container.height) / 2;
-            } else {
-                transform.offsetY = -mapHeight * adjust.start.y;
-            }
-
-            this.container.x = transform.offsetX;
-            this.container.y = transform.offsetY;*/
-
-        }      
-        console.log("final transform", transform, this.container.width, this.container.x); 
-
-        return transform;   
+        }        
 
     };
 
@@ -365,7 +269,6 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
         console.log('goToMap', args, this);
         // clear scene info
         this.name = args.mapName;
-        this.rollImg = "";
 
         this.loadStoryData(args.mapName);
 
@@ -426,6 +329,10 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
             obj[key] = data[key];
         }
         console.log("seted", obj);
+    };
+
+    Scene.prototype.initPlayer = function(data) {
+        this.player.setData(data);
     };
 
     
