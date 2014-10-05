@@ -1,0 +1,117 @@
+        body{
+           margin: 0;
+           padding: 0;
+           border: 0;
+           overflow: hidden;
+           min-width: 400px;
+           min-height: 300px;
+          }
+
+        #dialogBox{
+           position: absolute;
+           top: 80%;
+           left: 30%;
+           height: 12%;
+           width: 40%;
+           overflow: auto;
+           background-image: url(resource/system/dialog_bg.png);
+           font-size: 1.2em;
+           color: #410fb8;
+           padding: 10px 20px;
+           border-radius: 10px;
+           z-index: 3;
+           display: none;
+       }
+
+       #intro{
+           position: absolute;
+           background-image: url(resource/system/intro/intro.jpg);
+           background-size: auto 100%;
+           background-position: 100% 0;
+           width: 100%;
+           height: 100%;
+           display: none;
+       }
+
+       #mainMenu{
+           position: absolute;
+           background-image: url(resource/system/mainMenu/bg.png);
+           background-size: auto 100%;
+           width: 100%;
+           height: 100%;
+           display: none;
+       }
+       #menuRecord{
+           margin-left: 12%;
+           margin-top: 22%;
+       }
+       #menuRecord img{
+           width: 19%;
+       }
+       #menuStart{
+           margin-left: 12%;
+           margin-top: 6%;
+       }
+       #menuStart img{
+           width: 19%;
+       }
+
+       #avatar{
+           position: absolute;
+           left: 0px;
+           top: 2px;
+
+           display: none;
+       }
+       #avatar img{
+           width: 80px;
+           height: 80px;
+       }
+       .HP{
+           height: 9px;
+           width: 9px;
+           background-color: #f00;
+       }
+       .MP{
+           height: 9px;
+           width: 9px;
+           background-color: #00f;
+       }
+       .EXP{
+           height: 9px;
+           width: 9px;
+           background-color: #0f0;
+       }
+
+       #sysMenu{
+           position: absolute;
+           background-image: url(resource/system/bg2.jpg);
+           width: 100%;
+           height: 100%;
+           display: none;
+       }
+       #sysMenu #nav{
+           margin-right: 200px;
+           margin-top: 100px;
+           float: right;
+           font-size: 23px;
+
+       }
+       #sysMenu #nav div{
+           padding: 11px;
+       }
+       #roleData{
+           position: absolute;
+           display: none;
+       }
+       #roleData .figure{
+          margin: 0 300px;
+       }
+       #goods{
+           position: absolute;
+           display: none;
+       }
+       #goods .icon{
+          width: 40px;
+          height: 40px;
+       }

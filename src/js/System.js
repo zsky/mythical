@@ -13,6 +13,8 @@ define(['lib/pixi'], function (PIXI) {
     };
 
     System.prototype.init = function() {
+        this.loadSysData();
+
         var sysNames = ["intro", "mainMenu", "avatar", "sysMenu", "roleData", "goods"];
         for(var i = 0; i < sysNames.length; i++){
             var name = sysNames[i];
@@ -61,6 +63,9 @@ define(['lib/pixi'], function (PIXI) {
     System.prototype.showSysMenu = function() {
 
         this.sys["sysMenu"].style.display = "block";
+        var playerData = this.gameData.playersAttr[0];
+        var coinSpan = this.sys["sysMenu"].getElementsByClassName("coin")[0];
+        coinSpan.innerHTML = playerData.coin;       
         // default
         this.showRoleData();
 
@@ -70,6 +75,7 @@ define(['lib/pixi'], function (PIXI) {
         if(this.currLayer) { this.currLayer.style.display = "none"; }
         this.sys["roleData"].style.display = "block";
         this.currLayer = this.sys["roleData"];
+
         var playerData = this.gameData.playersAttr[0];
         var rankSpan = this.sys["roleData"].getElementsByClassName("rank")[0];
         rankSpan.innerHTML = playerData.rank;
@@ -80,6 +86,7 @@ define(['lib/pixi'], function (PIXI) {
         hpDiv.style.width = playerData.HP + "px";
         mpDiv.style.width = playerData.MP + "px";
         expDiv.style.width = playerData.EXP + "px";
+        
 
     };
 
@@ -89,6 +96,34 @@ define(['lib/pixi'], function (PIXI) {
         if(this.currLayer){ this.currLayer.style.display = "none"; }
         this.sys["goods"].style.display = "block";
         this.currLayer = this.sys["goods"];
+
+        if(!this.sys["goods"].dataset.updated){
+            var iconImg = this.sys["goods"].getElementsByClassName("icon")[0];
+            var detailDiv = this.sys["goods"].getElementsByClassName("detail")[0];
+            var goodsList = this.sys["goods"].getElementsByClassName("list")[0];
+
+            console.log("detailsJson", this.detailsJson);
+
+            var goodsData = this.gameData.goods;
+            for(var i = 0; i < goodsData.length; i++){
+                var data = goodsData[i];
+                var detail = this.detailsJson.goods[data.name];
+                var item = "<li id=" + data.name + ">" + data.name + "</li>";
+                var element = document.createElement('li'); 
+                element.addEventListener("click", this.showItem(detailDiv, iconImg, detail), false);
+                element.innerHTML = data.name;
+                goodsList.appendChild(element);
+            }
+            this.sys["goods"].dataset.updated = true;
+        }
+
+        
+    };
+    System.prototype.showItem = function(detailDiv, iconImg, detail) {
+        return function(){
+            detailDiv.innerHTML = detail.describe;
+            iconImg.src = "resource/system/goods/" + detail.icon;
+        }
     };
 
     System.prototype.bindEvent = function(command){
@@ -148,6 +183,18 @@ define(['lib/pixi'], function (PIXI) {
 
     System.prototype.onkeyup = function(keyCode){
 
+
+    };
+
+    System.prototype.loadSysData = function() {
+
+        var sysLoader = new PIXI.JsonLoader("resource/system/details.json", false);
+        sysLoader.on("loaded", this.onSysDataLoaded.bind(this));
+        sysLoader.load(); 
+    };
+    System.prototype.onSysDataLoaded = function(data) {
+        console.log("sys data loaded", data);
+        this.detailsJson = data.content.json;   
 
     };
 
