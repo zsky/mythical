@@ -7,7 +7,7 @@ requirejs.config({
 });
 
 requirejs([
-    'app'
+    'App'
 ], function(app){
     
     app.init();

@@ -332,6 +332,7 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
     };
 
     Scene.prototype.initPlayer = function(data) {
+
         this.player.setData(data);
     };
 

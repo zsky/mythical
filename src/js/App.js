@@ -28,8 +28,8 @@ define(['Scene', 'System', 'Record', 'lib/pixi'], function (Scene, System, Recor
         //this.stage.addChild(this.sysContainer);
 
         this.mode = "system";
-        this.system.showIntro();
-        //this.newGame();
+        //this.system.showIntro();
+        this.newGame();
 
 
         this.listenEvents();    
@@ -100,29 +100,17 @@ define(['Scene', 'System', 'Record', 'lib/pixi'], function (Scene, System, Recor
     App.prototype.newGame = function() {
         console.log('new game');
         //  TODO: 读取游戏进度
-        this.gameData = this.record.getData("default");
-        var playerData = this.gameData.player;
+        var gameData = this.record.getData("default");
+        var playerData = gameData.player;
 
-        this.scene.goToMap(this.gameData);
+        this.scene.goToMap(playerData);
         this.scene.initPlayer(playerData);
 
         this.mode = "normal";
 
+        this.system.gameData = gameData;
 
-        var data = {
-            HP: playerData.properties.HP,
-            HP_MAX: playerData.properties.HP_MAX,
-            MP: playerData.properties.MP,
-            MP_MAX: playerData.properties.MP_MAX,
-            EXP: playerData.properties.EXP,
-            EXP_MAX: playerData.properties.EXP_MAX,
-            rank: playerData.properties.rank,
-            imgPath: playerData.properties.avatar
-        }
-
-        this.system.gameData = this.gameData;
-
-        this.system.showAvatar(data);
+        this.system.showAvatar();
     };
 
     return new App();

@@ -316,13 +316,13 @@ define(['lib/pixi'], function (PIXI) {
         this.textureData = data.textureData;
         this.status = {
             action: "stand",
-            direction: data.properties.dire
+            direction: data.dire
         }
-        this.x = data.properties.x;
-        this.y = data.properties.y;
+        this.x = data.x;
+        this.y = data.y;
 
-        this.vX = data.properties.vX;
-        this.vY = data.properties.vY;
+        this.vX = data.vX;
+        this.vY = data.vY;
         
         this.animationSpeed = 0.05;
         this.load();
