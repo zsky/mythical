@@ -25,11 +25,10 @@ define(['Scene', 'System', 'Record', 'lib/pixi'], function (Scene, System, Recor
         this.system = new System(this);
 
         this.stage.addChild(this.sceneContainer);
-        //this.stage.addChild(this.sysContainer);
 
         this.mode = "system";
-        //this.system.showIntro();
-        this.newGame();
+        this.system.showIntro();
+        //this.newGame();
 
 
         this.listenEvents();    
@@ -74,7 +73,7 @@ define(['Scene', 'System', 'Record', 'lib/pixi'], function (Scene, System, Recor
         if(this.mode === "normal"){
             this.scene.resizeScene();
         } else if(this.mode === "system"){
-            this.system.resizeSys();
+            //this.system.resizeSys();
         }
 
     };
@@ -111,6 +110,30 @@ define(['Scene', 'System', 'Record', 'lib/pixi'], function (Scene, System, Recor
         this.system.gameData = gameData;
 
         this.system.showAvatar();
+    };
+    App.prototype.saveData = function(data, id) {
+        this.record.saveData(data, id);
+    };
+    App.prototype.getPlayerData = function() {
+        return this.scene.getPlayerData();
+    };
+    App.prototype.readRecord = function(id) {
+
+        var gameData = this.record.getData(id);
+        if(gameData){
+            var playerData = gameData.player;
+
+            this.scene.goToMap(playerData);
+            this.scene.initPlayer(playerData);
+
+            this.mode = "normal";
+
+            this.system.gameData = gameData;
+
+            this.system.showAvatar();
+
+        }
+        
     };
 
     return new App();

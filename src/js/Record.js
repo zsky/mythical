@@ -46,24 +46,24 @@ define(['lib/pixi'], function (PIXI) {
             skills: [{
                 rolename: "qiangu",
                 physics:[{
-                    name: "phy1",
+                    id: "phy1",
                     rank: 1
                 }],
                 magic:[{
-                    name: "magic1",
+                    id: "magic1",
                     rank: 1
                 }]
             }],
             goods: [{
-                name: "HP1",
+                id: "HP1",
                 num: 3
             },
             {
-                name: "MP1",
+                id: "MP1",
                 num: 3
             }],
             equipment: [{
-                name: "armor1",
+                id: "armor1",
                 num: 1
             }],
             task: "task1"
@@ -71,10 +71,17 @@ define(['lib/pixi'], function (PIXI) {
 
     };
 
-    Record.prototype.getData = function(name) {
-        if(name === "default"){
+    Record.prototype.getData = function(id) {
+        if(id === "default"){
             return this.defaultData;
         }
+        var data = localStorage.getItem("record" + id);
+        if(data) return JSON.parse(data);
+        else return "";
+    };
+
+    Record.prototype.saveData = function(data, id) {
+        localStorage.setItem("record" + id, JSON.stringify(data));
     };
 
     

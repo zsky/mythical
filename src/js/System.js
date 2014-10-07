@@ -9,13 +9,15 @@ define(['lib/pixi'], function (PIXI) {
 
         this.init();
 
+        this.RECORD_NUM = 10;
+
 
     };
 
     System.prototype.init = function() {
         this.loadSysData();
 
-        var sysNames = ["intro", "mainMenu", "avatar", "sysMenu", "roleData", "goods"];
+        var sysNames = ["intro", "mainMenu", "avatar", "sysMenu", "roleData", "goods", "record"];
         for(var i = 0; i < sysNames.length; i++){
             var name = sysNames[i];
             this.sys[name] = document.getElementById(name);
@@ -38,6 +40,8 @@ define(['lib/pixi'], function (PIXI) {
 
     System.prototype.showAvatar = function() {
         this.sys["avatar"].style.display = "block";
+
+        this.sys["record"].style.display = "none";
         var playerData = this.gameData.playersAttr[0];
         var rankSpan = this.sys["avatar"].getElementsByClassName("rank")[0];
         rankSpan.innerHTML = playerData.rank;
@@ -62,13 +66,14 @@ define(['lib/pixi'], function (PIXI) {
 
     System.prototype.showSysMenu = function() {
 
+        this.state = "sysMenu";
         this.sys["sysMenu"].style.display = "block";
         var playerData = this.gameData.playersAttr[0];
         var coinSpan = this.sys["sysMenu"].getElementsByClassName("coin")[0];
         coinSpan.innerHTML = playerData.coin;       
         // default
-        this.showRoleData();
-
+        //this.showRoleData();
+        //this.showGoods();
     };
 
     System.prototype.showRoleData = function() {
@@ -107,11 +112,11 @@ define(['lib/pixi'], function (PIXI) {
             var goodsData = this.gameData.goods;
             for(var i = 0; i < goodsData.length; i++){
                 var data = goodsData[i];
-                var detail = this.detailsJson.goods[data.name];
-                var item = "<li id=" + data.name + ">" + data.name + "</li>";
+                var detail = this.detailsJson.goods[data.id];
                 var element = document.createElement('li'); 
+                element.className = "goodsItem";
                 element.addEventListener("click", this.showItem(detailDiv, iconImg, detail), false);
-                element.innerHTML = data.name;
+                element.innerHTML = "<span>" + detail.name + "</span>" + "<span>" + data.num + "</span>";
                 goodsList.appendChild(element);
             }
             this.sys["goods"].dataset.updated = true;
@@ -124,6 +129,84 @@ define(['lib/pixi'], function (PIXI) {
             detailDiv.innerHTML = detail.describe;
             iconImg.src = "resource/system/goods/" + detail.icon;
         }
+    };
+
+    System.prototype.showRecord = function(authority) {
+        this.sys["sysMenu"].style.display = "none";
+        this.sys["record"].style.display = "block";
+
+        this.state = "record";
+
+        var recordList = this.sys["record"].getElementsByClassName("list")[0];
+
+        this.sys["record"].dataset.authority = authority;
+
+        if(!this.sys["record"].dataset.created){
+            for(var i = 0; i < this.RECORD_NUM; i++){
+                var element = document.createElement('div'); 
+                element.addEventListener("click", this.recordEvent(i).bind(this), false);
+                element.className = "recordItem";
+                element.id = "record" + i;
+                recordList.appendChild(element);
+                var span = document.createElement('span'); 
+                span.className = "recordNum";
+                span.innerHTML = i;
+                element.appendChild(span);
+
+                var mapName = document.createElement('div'); 
+                mapName.className = "recordMapName";
+                element.appendChild(mapName);
+
+                var saveTime = document.createElement('div'); 
+                saveTime.className = "recordTime";
+                element.appendChild(saveTime);
+
+            }
+            this.sys["record"].dataset.created = true;
+        }
+
+        if(!this.sys["record"].dataset.updated){
+            for(var i = 0; i < this.RECORD_NUM; i++){
+                var data = this.app.record.getData(i);
+                if(data){
+                    this.updateRecordView(data, i);
+                }
+
+            }
+            this.sys["record"].dataset.updated = true;
+        }
+    };
+    System.prototype.recordEvent = function(i) {
+        return function(){
+            if(this.sys["record"].dataset.authority === "W"){
+                this.writeRecord(i);
+            }else{
+                this.readRecord(i);
+            }
+        }
+    };
+    System.prototype.writeRecord = function(id){
+        console.log("writeRecord", id);
+        var data = this.gameData;
+        data.player = this.app.getPlayerData();
+
+        this.updateRecordView(data, id);
+
+        
+        this.app.saveData(data, id);
+    };
+    System.prototype.readRecord = function(id) {
+        this.app.readRecord(id);
+    };
+    System.prototype.updateRecordView = function(data, id) {
+        console.log("updateRecordView", data);
+        var recordDiv = document.getElementById("record" + id);
+        var mapName = recordDiv.getElementsByClassName("recordMapName")[0];
+        var saveTime = recordDiv.getElementsByClassName("recordTime")[0];
+
+        mapName.innerHTML = data.player.displayName;
+        var now = new Date();
+        saveTime.innerHTML = JSON.stringify(now);
     };
 
     System.prototype.bindEvent = function(command){
@@ -141,8 +224,13 @@ define(['lib/pixi'], function (PIXI) {
                 this.sys["mainMenu"].style.display = "none";
                 this.app.newGame();
                 break;
+            case "menuRecord":
+                this.sys["mainMenu"].style.display = "none";
+                this.showRecord("R");
+                break;
             case "avatarImg":
                 this.sys["avatar"].style.display = "none";
+                this.app.mode = "system";
                 this.showSysMenu();
                 break;
             case "toRoleData":
@@ -151,6 +239,7 @@ define(['lib/pixi'], function (PIXI) {
             case "toGoods":
                 this.showGoods();
                 break;
+           
         }
     };
 
@@ -175,7 +264,18 @@ define(['lib/pixi'], function (PIXI) {
                     this.sys["intro"].style.display = "none";
                     this.introMoving = false;
                     this.showMainMenu();
-                }                
+                    this.state = "";
+                }else if(this.state === "sysMenu"){
+                    this.sys["sysMenu"].style.display = "none";
+                    this.showAvatar();
+                    this.app.mode = "normal";
+                    this.state = ""; 
+                }else if(this.state === "record"){
+                    this.sys["record"].style.display = "none";
+                    this.showAvatar();
+                    this.app.mode = "normal";
+                    this.state = "";
+                }             
                 break;
         }
 

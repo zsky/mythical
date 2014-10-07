@@ -1,117 +1,197 @@
-        body{
-           margin: 0;
-           padding: 0;
-           border: 0;
-           overflow: hidden;
-           min-width: 400px;
-           min-height: 300px;
-          }
+body{
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    min-width: 400px;
+    min-height: 300px;
+}
 
-        #dialogBox{
-           position: absolute;
-           top: 80%;
-           left: 30%;
-           height: 12%;
-           width: 40%;
-           overflow: auto;
-           background-image: url(resource/system/dialog_bg.png);
-           font-size: 1.2em;
-           color: #410fb8;
-           padding: 10px 20px;
-           border-radius: 10px;
-           z-index: 3;
-           display: none;
-       }
+#dialogBox{
+    position: absolute;
+    top: 80%;
+    left: 30%;
+    height: 12%;
+    width: 40%;
+    overflow: auto;
+    background-image: url(resource/system/dialog_bg.png);
+    font-size: 1.2em;
+    color: #410fb8;
+    padding: 10px 20px;
+    border-radius: 10px;
+    z-index: 3;
+    display: none;
+}
 
-       #intro{
-           position: absolute;
-           background-image: url(resource/system/intro/intro.jpg);
-           background-size: auto 100%;
-           background-position: 100% 0;
-           width: 100%;
-           height: 100%;
-           display: none;
-       }
+#intro{
+    position: absolute;
+    background-image: url(resource/system/intro/intro.jpg);
+    background-size: auto 100%;
+    background-position: 100% 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+}
 
-       #mainMenu{
-           position: absolute;
-           background-image: url(resource/system/mainMenu/bg.png);
-           background-size: auto 100%;
-           width: 100%;
-           height: 100%;
-           display: none;
-       }
-       #menuRecord{
-           margin-left: 12%;
-           margin-top: 22%;
-       }
-       #menuRecord img{
-           width: 19%;
-       }
-       #menuStart{
-           margin-left: 12%;
-           margin-top: 6%;
-       }
-       #menuStart img{
-           width: 19%;
-       }
+#mainMenu{
+    position: absolute;
+    background-image: url(resource/system/mainMenu/bg.png);
+    background-size: auto 100%;
+    width: 100%;
+    height: 100%;
+    display: none;
+}
+#menuRecord{
+    margin-left: 12%;
+    margin-top: 22%;
+}
+#menuRecord img{
+    width: 19%;
+}
+#menuStart{
+    margin-left: 12%;
+    margin-top: 6%;
+}
+#menuStart img{
+    width: 19%;
+}
 
-       #avatar{
-           position: absolute;
-           left: 0px;
-           top: 2px;
+#avatar{
+    position: absolute;
+    left: 0px;
+    top: 2px;
 
-           display: none;
-       }
-       #avatar img{
-           width: 80px;
-           height: 80px;
-       }
-       .HP{
-           height: 9px;
-           width: 9px;
-           background-color: #f00;
-       }
-       .MP{
-           height: 9px;
-           width: 9px;
-           background-color: #00f;
-       }
-       .EXP{
-           height: 9px;
-           width: 9px;
-           background-color: #0f0;
-       }
+    display: none;
+}
+#avatar img{
+    width: 80px;
+    height: 80px;
+}
+.HP{
+    height: 9px;
+    width: 9px;
+    background-color: #f00;
+}
+.MP{
+    height: 9px;
+    width: 9px;
+    background-color: #00f;
+}
+.EXP{
+    height: 9px;
+    width: 9px;
+    background-color: #0f0;
+}
 
-       #sysMenu{
-           position: absolute;
-           background-image: url(resource/system/bg2.jpg);
-           width: 100%;
-           height: 100%;
-           display: none;
-       }
-       #sysMenu #nav{
-           margin-right: 200px;
-           margin-top: 100px;
-           float: right;
-           font-size: 23px;
+#sysMenu{
+    position: absolute;
+    background-image: url(resource/bg/bg_gray.jpg);
+    width: 100%;
+    height: 100%;
+    display: none;
+}
+#sysMenu #nav{
+    background-image: url(resource/bg/bg_yellow5.jpg);
+    height: 100%;
+    width: 15%;
+    float: right;
+    font-size: 23px;
+    padding-left: 22px;
 
-       }
-       #sysMenu #nav div{
-           padding: 11px;
-       }
-       #roleData{
-           position: absolute;
-           display: none;
-       }
-       #roleData .figure{
-          margin: 0 300px;
-       }
-       #goods{
-           position: absolute;
-           display: none;
-       }
-       #goods .icon{
-          width: 40px;
-          height: 40px;
-       }
+}
+#sysMenu #nav div{
+    padding: 11px;
+    margin: 24px;
+    background-image: url(resource/bg/bg_yellow3.jpg);
+    color: #2E1D74;
+}
+#sysMenu #nav div:hover{
+    color: #9B1A39;
+}
+
+#roleData{
+    position: absolute;
+    display: none;
+}
+#roleData .roleInfo{
+  margin-top: 50px;
+  float: left;
+}
+#roleData .roleFigure{
+    margin-left: 110%;
+}
+#goods{
+    position: absolute;
+    display: none;
+}
+#goods .icon{
+    width: 70px;
+    height: 70px;
+    margin-left: 433px;
+    margin-top: 50px;
+    border:15px solid transparent;
+    border-image: url(resource/border/border1.jpg) 60 80;
+}
+#goods .detail{
+    width: 170px;
+    height: 170px;
+    margin-left: 381px;
+    margin-top: 50px;
+    border:18px solid transparent;
+    border-image: url(resource/border/border2.jpg) 40 40;
+}
+#goods .listDiv{
+    width: 170px;
+    height: 80%;
+    position: absolute;
+    left: 710px;
+    top: 40px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border:18px solid transparent;
+    border-image: url(resource/border/border3.jpg) 40 40;
+}
+#goods li{
+  list-style-type: none;
+  border-top: 1px solid #8F9B8B;
+  padding: 3px;
+}
+#goods li.head{
+  font-size: 16px;
+  font-weight: bold;
+}
+#goods li span{
+  margin-right: 19px;
+  padding: 3px;
+}
+#record{
+    position: absolute;
+    background-image: url(resource/bg/bg_yellow5.jpg);
+    width: 100%;
+    height: 100%;
+    display: none;
+}
+#record .head{
+    margin-left: 40%;
+    margin-top: 40px;
+    font-size: 22px;
+    font-weight: bold;
+}
+#record .head span{
+    margin-right: 43px;
+}
+#record .list{
+    width: 80%;
+    height: 100%;
+    margin-left: 10%;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+#record .recordItem{
+  width: 90%;
+  height: 150px;
+  margin-top: 44px;
+  border:9px solid transparent;
+  border-image: url(resource/border/border5.jpg) 10 10 repeat;
+
+}

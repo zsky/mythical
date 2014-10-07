@@ -150,6 +150,14 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
             }
             console.log('switch top layer');
         }
+        if(keyCode === 112){
+            this.app.system.showRecord("R");
+            this.app.mode = "system";
+        }
+        if(keyCode === 113){
+            this.app.system.showRecord("W");
+            this.app.mode = "system";
+        }
 
         console.log("scene onkeydown", this);
         if(keyCode === 27){
@@ -334,6 +342,14 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
     Scene.prototype.initPlayer = function(data) {
 
         this.player.setData(data);
+    };
+
+    Scene.prototype.getPlayerData = function() {
+        var playerData = this.player.playerData;
+        playerData.x = this.player.x;
+        playerData.y = this.player.y;
+        playerData.displayName = this.storyData.displayName;
+        return playerData;
     };
 
     

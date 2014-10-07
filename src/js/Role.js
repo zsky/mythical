@@ -5,22 +5,6 @@ define(['lib/pixi'], function (PIXI) {
         this.container = container;
         this.scene = scene;
 
-        //this.attack = properties.attack || 0;
-        //this.hp = properties.hp || 0;
-
-        /*this.status = playerData.status;
-
-        this.x = playerData.properties.x;
-        this.y = playerData.properties.y;
-
-        this.vX = playerData.properties.vX;
-        this.vY = playerData.properties.vY;
-
-        
-        this.animationSpeed = 0.05;
-
-        // texture 
-        this.textureData = playerData.textureData;*/
 
         this.actions = {};
 
@@ -313,6 +297,8 @@ define(['lib/pixi'], function (PIXI) {
     };
 
     Role.prototype.setData = function(data) {
+        this.playerData = data;
+        
         this.textureData = data.textureData;
         this.status = {
             action: "stand",
