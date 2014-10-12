@@ -41,10 +41,14 @@ define(['lib/pixi'], function (PIXI) {
                 //this.drawCollData(layer.objects, this.topContainer);
             } else if(layer.type === "objectgroup" && layer.name === "event"){
                 console.log("event layer");
-                this.drawEventData(layer.objects, this.topContainer);
+                this.drawEventData(layer.objects, this.bgContainer);
             }
             
         }
+
+        //this.bgContainer.interactive = true;
+        //this.bgContainer.click = this.scene.player.moveToIt;
+
 
         this.loaded = true;
         this.scene.setRoleData({barriers: this.barriers});
@@ -212,6 +216,7 @@ define(['lib/pixi'], function (PIXI) {
                     obj.activated = false;
                     obj.triggered = true;
                     console.log('gain', obj.properties.gain);
+                    that.scene.app.getStuff(obj.properties.gain);
                 }
                 break;
             case "npc":

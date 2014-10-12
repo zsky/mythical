@@ -10,8 +10,8 @@ define(['lib/pixi'], function (PIXI) {
             player: {
                 x: 200,
                 y: 415,
-                vX: 3,
-                vY: 3,
+                vX: 1.5,
+                vY: 1.5,
                 dire: "U",
                 mapName: "start",
                 textureData: {
@@ -54,14 +54,10 @@ define(['lib/pixi'], function (PIXI) {
                     rank: 1
                 }]
             }],
-            goods: [{
-                id: "HP1",
-                num: 3
+            goods: {
+                "HP1": { num: 3 },
+                "MP1": { num: 3 }
             },
-            {
-                id: "MP1",
-                num: 3
-            }],
             equipment: [{
                 id: "armor1",
                 num: 1

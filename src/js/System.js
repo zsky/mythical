@@ -1,4 +1,4 @@
-define(['lib/pixi'], function (PIXI) {
+define(['lib/pixi', 'utils'], function (PIXI, utils) {
 
     var System = function(app){
 
@@ -17,13 +17,13 @@ define(['lib/pixi'], function (PIXI) {
     System.prototype.init = function() {
         this.loadSysData();
 
-        var sysNames = ["intro", "mainMenu", "avatar", "sysMenu", "roleData", "goods", "record"];
+        var sysNames = ["loading", "intro", "mainMenu", "avatar", "sysMenu", "roleData", "goods", "record"];
         for(var i = 0; i < sysNames.length; i++){
             var name = sysNames[i];
             this.sys[name] = document.getElementById(name);
         }
 
-        var menuNames = ["menuRecord", "menuStart", "avatarImg", "toRoleData", "toGoods"];
+        var menuNames = ["menuRecord", "menuStart", "avatarImg", "toRoleData", "toGoods", "toRecord"];
         for(var i = 0; i < menuNames.length; i++){
             var name = menuNames[i];
             var menu = document.getElementById(name);
@@ -64,6 +64,22 @@ define(['lib/pixi'], function (PIXI) {
 
     };
 
+    System.prototype.showLoading = function() {
+        console.log("before showLoading", this.app.mode);
+        this.app.mode = "system";
+        console.log("after showLoading", this.app.mode);
+        this.sys["loading"].style.display = "block";
+    };
+    System.prototype.hideLoading = function() {
+        var that = this;
+        console.log('system hideLoading', that);
+        this.sys["loading"].style.opacity = 1;
+        utils.hide(this.sys["loading"], function(){
+            console.log("caonimabibbbbbbbbbbb");
+            that.app.mode = "normal";
+        });
+    };
+
     System.prototype.showSysMenu = function() {
 
         this.state = "sysMenu";
@@ -72,8 +88,7 @@ define(['lib/pixi'], function (PIXI) {
         var coinSpan = this.sys["sysMenu"].getElementsByClassName("coin")[0];
         coinSpan.innerHTML = playerData.coin;       
         // default
-        //this.showRoleData();
-        //this.showGoods();
+        this.showRoleData();
     };
 
     System.prototype.showRoleData = function() {
@@ -103,23 +118,26 @@ define(['lib/pixi'], function (PIXI) {
         this.currLayer = this.sys["goods"];
 
         if(!this.sys["goods"].dataset.updated){
+            console.log("showGoods updated");
             var iconImg = this.sys["goods"].getElementsByClassName("icon")[0];
             var detailDiv = this.sys["goods"].getElementsByClassName("detail")[0];
             var goodsList = this.sys["goods"].getElementsByClassName("list")[0];
 
             console.log("detailsJson", this.detailsJson);
+            goodsList.innerHTML = "<li class='head'> <span> name </span> <span> number </span> </li>";
 
             var goodsData = this.gameData.goods;
-            for(var i = 0; i < goodsData.length; i++){
-                var data = goodsData[i];
-                var detail = this.detailsJson.goods[data.id];
-                var element = document.createElement('li'); 
+            for(var k  in goodsData){
+                var data = goodsData[k];
+                var detail = this.detailsJson.goods[k];
+                var element = document.createElement('li');
                 element.className = "goodsItem";
                 element.addEventListener("click", this.showItem(detailDiv, iconImg, detail), false);
                 element.innerHTML = "<span>" + detail.name + "</span>" + "<span>" + data.num + "</span>";
                 goodsList.appendChild(element);
             }
-            this.sys["goods"].dataset.updated = true;
+
+            this.sys["goods"].dataset.updated = "updated";
         }
 
         
@@ -132,6 +150,7 @@ define(['lib/pixi'], function (PIXI) {
     };
 
     System.prototype.showRecord = function(authority) {
+        console.log("showRecordddddddddddd");
         this.sys["sysMenu"].style.display = "none";
         this.sys["record"].style.display = "block";
 
@@ -209,6 +228,39 @@ define(['lib/pixi'], function (PIXI) {
         saveTime.innerHTML = JSON.stringify(now);
     };
 
+    System.prototype.getStuff = function(data) {
+        var gainDiv = document.getElementById("gainTips");
+        gainDiv.innerHTML = "";
+        
+        this.sys["goods"].dataset.updated = "";
+        for(var i = 0; i < data.length; i++){
+            var stuff = data[i];
+            // show info
+            var element = document.createElement('div'); 
+            element.innerHTML = " GET " + stuff[1] + " X " + stuff[2];
+            gainDiv.appendChild(element);
+
+            switch(stuff[0]){
+                case "coin":
+                    this.gameData.playersAttr[0].coin += stuff[2];
+                    break;
+                case "goods":
+                    if(this.gameData.goods[stuff[1]]){
+                        this.gameData.goods[stuff[1]].num += stuff[2];
+                    }else{
+                        this.gameData.goods[stuff[1]] = {
+                            num: stuff[2]
+                        };
+                    }              
+                    break;
+            }
+        }
+
+        utils.flash(gainDiv);
+
+
+    };
+
     System.prototype.bindEvent = function(command){
         var that = this;
         return function(){
@@ -227,6 +279,7 @@ define(['lib/pixi'], function (PIXI) {
             case "menuRecord":
                 this.sys["mainMenu"].style.display = "none";
                 this.showRecord("R");
+                this.state = "readRecord";
                 break;
             case "avatarImg":
                 this.sys["avatar"].style.display = "none";
@@ -238,6 +291,9 @@ define(['lib/pixi'], function (PIXI) {
                 break;
             case "toGoods":
                 this.showGoods();
+                break;
+            case "toRecord":
+                this.showRecord("R");
                 break;
            
         }
@@ -275,8 +331,11 @@ define(['lib/pixi'], function (PIXI) {
                     this.showAvatar();
                     this.app.mode = "normal";
                     this.state = "";
-                }             
-                break;
+               }else if(this.state === "readRecord"){
+                   this.sys["record"].style.display = "none";
+                   this.sys["mainMenu"].style.display = "block";
+                   this.state = "";         
+               }
         }
 
     };

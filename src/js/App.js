@@ -7,7 +7,8 @@ define(['Scene', 'System', 'Record', 'lib/pixi'], function (Scene, System, Recor
 
         console.log('start the game, 0.1');
 
-        this.stage = new PIXI.Stage(0xff90ff);
+        //this.stage = new PIXI.Stage(0xff90ff);
+        this.stage = new PIXI.Stage();
         this.renderer = new PIXI.autoDetectRenderer(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.view);
         this.renderer.view.style.display = "block";
@@ -27,8 +28,8 @@ define(['Scene', 'System', 'Record', 'lib/pixi'], function (Scene, System, Recor
         this.stage.addChild(this.sceneContainer);
 
         this.mode = "system";
-        this.system.showIntro();
-        //this.newGame();
+        //this.system.showIntro();
+        this.newGame();
 
 
         this.listenEvents();    
@@ -46,7 +47,7 @@ define(['Scene', 'System', 'Record', 'lib/pixi'], function (Scene, System, Recor
 
         // listen events
         document.addEventListener("keydown", function(e){
-            console.log('keydown', e.keyCode);
+            console.log('keydown', e.keyCode, that.mode);
             e.preventDefault();
             if(that.mode === "normal"){
                 that.scene.onkeydown(e.keyCode);
@@ -105,7 +106,7 @@ define(['Scene', 'System', 'Record', 'lib/pixi'], function (Scene, System, Recor
         this.scene.goToMap(playerData);
         this.scene.initPlayer(playerData);
 
-        this.mode = "normal";
+        //this.mode = "normal";
 
         this.system.gameData = gameData;
 
@@ -134,6 +135,10 @@ define(['Scene', 'System', 'Record', 'lib/pixi'], function (Scene, System, Recor
 
         }
         
+    };
+
+    App.prototype.getStuff = function(data) {
+        this.system.getStuff(data);
     };
 
     return new App();

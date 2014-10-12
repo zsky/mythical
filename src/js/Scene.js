@@ -26,12 +26,15 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
         this.player = new Role(this.layer[1], this);
         this.map = new Map(this.layer[0], this.layer[2], this);
 
+        this.container.interactive = true;
+        this.container.click = this.player.moveToIt.bind(this.player);
+
     };
 
     Scene.prototype.loadStoryData = function(name) {
 
-        /*this.loading = new PIXI.Sprite.fromImage("resource/img/loading.gif");
-        this.layer[3].addChild(this.loading);*/
+        //this.mode = "loading";
+        this.app.system.showLoading();
 
         var storyLoader = new PIXI.JsonLoader("resource/story/" + name + ".json", false);
         storyLoader.on("loaded", this.onStoryLoaded.bind(this));
@@ -81,6 +84,8 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
         this.setData(this.player, {boundary: boundary});
 
         console.log("data loaded, TextureCache", PIXI.TextureCache);
+        //this.mode = "normal";
+        this.app.system.hideLoading();
         this.enter();  // enter the scene
 
     };
@@ -138,6 +143,7 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
             console.log('switch bg');
         } 
         if(keyCode === 79){  // o
+            console.log("check layer[1] children", this.layer[1].children);
             console.log("check layer[2] children", this.layer[2].children);
             console.log("check player", this.player.x, this.player.y);
             console.log("player walkinObjs", this.player.walkinObjs);
@@ -159,32 +165,21 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
             this.app.mode = "system";
         }
 
-        console.log("scene onkeydown", this);
-        if(keyCode === 27){
-            if(this.rollImg){
-                console.log("", this.rollImg);
-                if(this.rollImg.menu){ 
-                    this.app.showMenu(this.rollImg.menu);
-                    this.rollImg = "";
-                    this.mapData = "";
-                    this.clearLayers(this.layer);
+        console.log("scene onkeydown");
 
-                }else{
-                    this.goToMap(this.rollImg);
-                }
-
-                //
-            }
-        }
 
         if(this.mode === "dialog"){
             if(keyCode === 32){
                 this.sayWords();
-
+            }else if( keyCode === 27){
+                this.currDialog.words = [];
+                this.sayWords();
             }
+        }else{
+            this.player && this.player.onkeydown(keyCode);
         }
 
-        this.player && this.player.onkeydown(keyCode);
+        
 
     };
 
@@ -234,6 +229,7 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
     Scene.prototype.enterDialog = function(type, name) {
         this.mode = "dialog";
         var npc = this.storyData.npc[name];
+        this.currNpc = npc;
         this.currDialog = {
             words: npc.words
         }
@@ -242,6 +238,7 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
 
     Scene.prototype.sayWords = function(){
         var word = this.currDialog.words.shift();
+        console.log("sayWords", word);
         if(word){
             this.dialogBox.innerHTML = word;
             this.dialogBox.style.display = "block";
@@ -250,6 +247,7 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
             console.log("dialog over");
             this.dialogBox.style.display = "none";
             this.mode = "normal";
+            this.app.system.getStuff(this.currNpc.finalGet);
         }
         
     };
@@ -259,7 +257,7 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
 
         if(obj.type === "mark"){
             if(obj.name === "exit"){
-                obj.args = { mapName: obj.properties.nextMap };
+                obj.args = { mapName: obj.properties.nextMap, status: obj.properties.status };
                 obj.callback = this.goToMap.bind(this);
             }
         }
@@ -276,8 +274,15 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
 
         console.log('goToMap', args, this);
         // clear scene info
-        this.name = args.mapName;
 
+        if(args.status){
+            console.log("update player", args.status);
+            this.player.x = args.status.x;
+            this.player.y = args.status.y;
+            this.player.direction = args.status.dire;
+        }
+
+        this.name = args.mapName;
         this.loadStoryData(args.mapName);
 
     };

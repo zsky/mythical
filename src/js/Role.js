@@ -87,6 +87,33 @@ define(['lib/pixi'], function (PIXI) {
         this.container.addChild(this.currAction);
     };
 
+    Role.prototype.moveToIt = function(e) {
+        if(this.scene.mode === "dialog") return;
+        var pos = e.getLocalPosition(this.scene.container);
+        var distX = pos.x - this.x;
+        var distY = pos.y - this.y;
+        this.currTarget = {
+            pos: pos
+        };
+        if(Math.abs(distX) > Math.abs(distY)){
+            if(distX > 0){
+                this.actionChanged("walk", "R");
+            }else{
+                this.actionChanged("walk", "L");
+            }
+            this.currTarget.stateX = "ing";
+            this.currTarget.stateY = "to";
+        }else{
+            if(distY > 0){
+                this.actionChanged("walk", "D");
+            }else{
+                this.actionChanged("walk", "U");
+            }
+            this.currTarget.stateX = "to";
+            this.currTarget.stateY = "ing";
+        }
+        console.log("move to target", this.currTarget);
+    };
 
     Role.prototype.actionChanged = function(action, direction){
 
@@ -129,6 +156,40 @@ define(['lib/pixi'], function (PIXI) {
 
         var pX = that.x + that.currAction.width/2;
         var pY = that.y + that.currAction.height/2;
+
+
+        // move to target
+        if(this.currTarget){
+            if(this.currTarget.stateX === "ing" && Math.abs(this.x - this.currTarget.pos.x) < this.vX){
+                this.currTarget.stateX = "ed";
+                if(this.currTarget.stateY === "to"){
+                    this.currTarget.stateY = "ing";
+                    if(this.y < this.currTarget.pos.y){
+                        this.actionChanged("walk", "D");
+                    }else {
+                        this.actionChanged("walk", "U");
+                    } 
+                }else{
+                    this.currTarget = "";
+                    this.actionChanged("stand", this.status.direction);
+                }
+            }
+            if(this.currTarget.stateY === "ing" && Math.abs(this.y - this.currTarget.pos.y) < this.vX){
+                this.currTarget.stateY = "ed";
+                if(this.currTarget.stateX === "to"){
+                    this.currTarget.stateX = "ing";
+                    if(this.x < this.currTarget.pos.x){
+                        this.actionChanged("walk", "R");
+                    }else {
+                        this.actionChanged("walk", "L");
+                    } 
+                }else{
+                    this.currTarget = "";
+                    this.actionChanged("stand", this.status.direction);
+                }
+            }
+
+        }
 
         // walkin events detect
 
