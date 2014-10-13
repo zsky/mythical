@@ -13,7 +13,7 @@ define(['lib/pixi'], function (PIXI) {
                 vX: 1.5,
                 vY: 1.5,
                 dire: "U",
-                mapName: "start",
+                mapName: "road",
                 textureData: {
                     path: "resource/role/qiangu.png",
                     actions: ["walkD", "walkL", "walkR", "walkU"],

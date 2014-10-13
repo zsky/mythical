@@ -117,6 +117,7 @@ define(['lib/pixi'], function (PIXI) {
                 g.drawRect(obj.x, obj.y, obj.width, obj.height);
                 continue;
             }
+            
             if(obj.properties.frame_num){
                 this.initAnimation(obj, container);   
             }else{

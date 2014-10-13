@@ -1,5 +1,7 @@
 define(['lib/pixi'], function (PIXI) {
 
+    var logged = {};
+
     var Role = function(container, scene){
 
         this.container = container;
@@ -189,6 +191,28 @@ define(['lib/pixi'], function (PIXI) {
                 }
             }
 
+        }
+
+
+        // enemies detect
+        var enemies = this.scene.getEnemies();
+        if(enemies){
+            if(!logged[enemies]){
+                console.log("enemies detectt", enemies);
+                logged[enemies] = true;
+            }
+            
+            for(var i = 0; i < enemies.length; i++){
+                var enemy = enemies[i];
+                var dx2 = (enemy.x - pX) * (enemy.x - pX);
+                var dy2 = (enemy.y - pY) * (enemy.y - pY);
+                var r = enemy.triggerRadius;
+                if(dx2 + dy2 < r * r){
+                    console.log("haha i will kill you , into battle");
+                    this.scene.toBattle(enemy.battleData);
+                    return;
+                }
+            }
         }
 
         // walkin events detect

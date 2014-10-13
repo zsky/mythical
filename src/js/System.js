@@ -55,6 +55,9 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
 
         
     };
+    System.prototype.hideAvatar = function() {
+        this.sys["avatar"].style.display = "none";
+    };
 
     System.prototype.showMainMenu = function() {
         this.state = "mainMenu";
@@ -75,7 +78,6 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         console.log('system hideLoading', that);
         this.sys["loading"].style.opacity = 1;
         utils.hide(this.sys["loading"], function(){
-            console.log("caonimabibbbbbbbbbbb");
             that.app.mode = "normal";
         });
     };

@@ -1,4 +1,4 @@
-define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
+define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role, Enemy, Battle) {
 
     var Scene = function(container, app){
 
@@ -7,27 +7,29 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
 
         this.MOVE_STEP = 80;
         
+        this.enemies = [];
         this.init();
 
     };
 
     Scene.prototype.init = function(){
         this.layer = [];
-        for(var i = 0; i < 3; i++){
+        for(var i = 0; i < 4; i++){
             this.layer[i] = new PIXI.DisplayObjectContainer();
             this.container.addChild(this.layer[i]);
         }
         /*
-        layer[0]: bg,  layer[1]: player, layer[2]: 遮挡人物的物品 
+        layer[0]: bg,  layer[1]: player, layer[2]: 遮挡人物的物品, layer[3]: battle 
         */
 
         this.dialogBox = document.getElementById("dialogBox");
 
         this.player = new Role(this.layer[1], this);
         this.map = new Map(this.layer[0], this.layer[2], this);
+        this.battle = new Battle(this.layer[3], this);
 
         this.container.interactive = true;
-        this.container.click = this.player.moveToIt.bind(this.player);
+        //this.container.click = this.player.moveToIt.bind(this.player);
 
     };
 
@@ -121,14 +123,46 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
         this.setData(this.map, {name: this.name, json: this.mapData});
         this.map.drawAll();
 
+        this.enemies = [];
+        if(this.storyData.enemy){
+            for(var i = 0; i < this.storyData.enemy.length; i++){
+                var enemyData = this.storyData.enemy[i];
+                var enemy = new Enemy(this.layer[0], enemyData);
+                enemy.animate();
+                this.enemies.push(enemy);
+
+            }
+        }
+
+
         this.resizeScene();  // resize scene
              
          
     };
 
     Scene.prototype.update = function(){
+
+        if(this.mode === "battle"){
+            this.battle.update();
+            return;
+        };
+
+        for(var i = 0; i < this.enemies.length; i++){
+            var enemy = this.enemies[i];
+            enemy.update();
+        }
        
         this.map.loaded && this.player.update();
+    };
+
+    Scene.prototype.getEnemies = function() {
+        return this.enemies;
+    };
+
+    Scene.prototype.toBattle = function(battleData) {
+        this.mode = "battle";
+        this.app.hideAvatar();
+        this.battle.enter(battleData);
     };
 
     Scene.prototype.onkeydown = function(keyCode){
@@ -147,6 +181,7 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
             console.log("check layer[2] children", this.layer[2].children);
             console.log("check player", this.player.x, this.player.y);
             console.log("player walkinObjs", this.player.walkinObjs);
+            console.log("enemies", this.enemies);
         }
         if(keyCode === 80){  // p
             if(this.layer[2].visible){
@@ -175,6 +210,8 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
                 this.currDialog.words = [];
                 this.sayWords();
             }
+        }else if(this.mode === "battle"){
+            this.battle.onkeydown(keyCode);
         }else{
             this.player && this.player.onkeydown(keyCode);
         }
@@ -190,6 +227,9 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
     };
 
     Scene.prototype.resizeScene = function(){
+        
+        if(this.mode === "battle") return;
+
         console.log('resizeScene');
 
         var transform = {
@@ -275,6 +315,7 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
         console.log('goToMap', args, this);
         // clear scene info
 
+
         if(args.status){
             console.log("update player", args.status);
             this.player.x = args.status.x;
@@ -306,7 +347,6 @@ define(['lib/pixi', 'Map', 'Role'], function (PIXI, Map, Role) {
             case "R": 
                 var dist = (this.container.width + this.container.x) - window.innerWidth;
                 if(dist < 0) return false;
-                console.log("moveMap R", this.container.x, this.container.width, speed);
                 this.container.x -= speed * this.container.scale.x;
                 break;
             case "D": 

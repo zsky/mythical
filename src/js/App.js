@@ -96,6 +96,9 @@ define(['Scene', 'System', 'Record', 'lib/pixi'], function (Scene, System, Recor
     App.prototype.showMenu = function(name) {
         this.system.showMenu(name);
     };
+    App.prototype.hideAvatar = function() {
+        this.system.hideAvatar();
+    };
 
     App.prototype.newGame = function() {
         console.log('new game');
