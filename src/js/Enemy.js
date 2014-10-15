@@ -1,148 +1,57 @@
-define(['lib/pixi'], function (PIXI) {
+define(['lib/pixi', 'utils', 'Anime'], function (PIXI, utils, Anime) {
 
-    var Enemy = function(container, enemyData){
+    var Enemy = function(container, data, parent){
 
     	this.container = container;
-    	this.textureData = enemyData.textureData;
-    	this.battleData = enemyData.battleData || "";
+    	this.parent = parent;
+    	this.textureData = data.textureData;
+    	this.ways = data.ways || [];
+    	this.battleData = data.battleData || "";
 
-    	this.x = enemyData.route.start.x;
-    	this.y = enemyData.route.start.y;
-    	this.vX = enemyData.route.vX;
-    	this.vY = enemyData.route.vY;
-    	this.triggerRadius = enemyData.route.triggerRadius || 0;
-
-    	this.animationSpeed = 0.08;
-
-    	this.ways = enemyData.route.ways || [];
+    	this.x = data.start.x;
+    	this.y = data.start.y;
+    	this.vX = data.vX || 2;
+    	this.vY = data.vY || 2;
+    	this.triggerRadius = data.triggerRadius || 0;
 
 
-    	this.actions = [];
-
+    	// defaults
+    	this.animationSpeed = 0.06;
+    	this.actions = {};
     	this.currIndex = 0;
 
-    	this.load();
 
-
-
-    };
-
-    Enemy.prototype.load = function(){
-    	console.log("load Enemy");
-
-        var image = new PIXI.ImageLoader(this.textureData.path);
-        image.on("loaded", function(){
-            console.log('image loaded');
-        });
-
-        var baseTexture = image.texture.baseTexture;
-        var imgWidth = this.textureData.imgWidth,
-            imgHeight = this.textureData.imgHeight;
-        for(var i = 0; i < this.textureData.actions.length; i++){
-            for(var j = 0; j < this.textureData.frame_num; j++){
-                var action_name = this.textureData.actions[i];
-                PIXI.TextureCache[action_name+j] = new PIXI.Texture(baseTexture, {
-                                                   x: j*imgWidth,
-                                                   y: i*imgHeight,
-                                                   width: imgWidth,
-                                                   height: imgHeight
-                                               });
-            }
-        }
-        console.log('pixi TextureCache', PIXI.TextureCache);
-        
-        image.load();
-
-        var frames = [];
-        var action_name;
-
-        for(var i = 0; i < this.textureData.actions.length; i++){
-            frames = [];
-            action_name = this.textureData.actions[i];
-            for(var j = 0; j < this.textureData.frame_num; j++){
-
-                
-                var texture = PIXI.Texture.fromFrame(action_name + j);
-                frames.push(texture);
-
-            }
-            this.actions[action_name] = new PIXI.MovieClip(frames);
-            this.actions[action_name].scale.x = this.textureData.ratio;
-            this.actions[action_name].scale.y = this.textureData.ratio;
-        }  
-
+    	this.init();
 
     };
+    utils.extend(Enemy, Anime);
 
+    Enemy.prototype.init = function() {
+    	this.loadAction(this.textureData);
+    };
 
-    Enemy.prototype.animate = function() {
-    	
-    	if(this.currIndex >= this.ways.length){
-    		this.currIndex = 0;
+    Enemy.prototype.goAround = function() {
+    	this.actionChanged("walk", this.ways[0].dire);
+    	this.currWay = {
+    		dire: this.ways[0].dire,
+    		dist: this.ways[0].dist,
+    		callback: function(){
+    			// exec in anime.js just like in enemy.js
+    			this.currIndex++;
+    			if(this.currIndex >= this.ways.length) this.currIndex = 0;
+
+    			this.currWay.dire = this.ways[this.currIndex].dire;
+    			this.currWay.dist = this.ways[this.currIndex].dist;
+    			this.currWay.triggered = false;
+    			this.actionChanged("walk", this.currWay.dire);
+    		}
     	}
-    	this.currWay = this.ways[this.currIndex];
-    	this.currDist = this.currWay.dist;
-
-    	action_name = "walk" + this.currWay.dire;
-
-    	this.currAction  && this.container.removeChild(this.currAction);
-
-    	this.currAction = this.actions[action_name];
-    	this.currAction.animationSpeed = this.animationSpeed;
-
-    	this.currAction.position.x = this.x;
-    	this.currAction.position.y = this.y;
-
-    	this.currAction.play();
-
-    	this.container.addChild(this.currAction);
 
     };
+
 
     Enemy.prototype.update = function() {
-    	
-    	if(!this.currWay) return;
-
-    	if(this.currDist < 0){
-    		if(this.inBattle){
-    			if(this.currIndex === 1){
-    				this.currIndex = 0;
-    				this.finishAttack();
-    			}else{
-    				this.currIndex = 1;
-    				console.log('attack you!!!');
-    				this.animate();
-    			}
-    		}else{
-    			this.currIndex++;
-    			this.animate();
-    		}
-
-    	}else{
-    		switch(this.currWay.dire){
-    			case "L": 
-    				this.x -= this.vX;
-    				this.currDist -= this.vX;
-    				break;
-    			case "U": 
-    				this.y -= this.vY;
-    				this.currDist -= this.vY;
-    				break;
-    			case "R": 
-    				this.x += this.vX;
-    				this.currDist -= this.vX;
-    				break;
-    			case "D": 
-    				this.y += this.vY;
-    				this.currDist -= this.vX;
-    				break;
-
-    		}
-    		this.currAction.position.x = this.x;
-    		this.currAction.position.y = this.y;
-    	}
-
-    	
+    	this.updateWay();
     };
 
     // in battle
@@ -172,7 +81,7 @@ define(['lib/pixi'], function (PIXI) {
     		{ dire: "L", dist: 400 }
     	]
 
-    	this.animate();
+    	this.goAround();
 
     };
     Enemy.prototype.finishAttack = function() {

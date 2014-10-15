@@ -5,17 +5,69 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         this.app = app;
         this.sys = [];
 
-        this.resizeable = false;
-
         this.init();
 
+        // consts
+        this.MOVE_INTRO_SPEED = 0.04;
         this.RECORD_NUM = 10;
+
+        this.defaultData = {
+            
+            playerDisp: {
+                x: 200,
+                y: 415,
+                vX: 1.5,
+                vY: 1.5,
+                dire: "U",
+                mapName: "road",
+                textureData: {
+                    path: "resource/role/qiangu.png",
+                    actions: ["walkD", "walkL", "walkR", "walkU"],
+                    imgWidth: 100,
+                    imgHeight: 100,
+                    frame_num: 4,
+                    ratio: 0.5
+                }
+            },
+            playerAttr: {
+                basicAttr: {
+                    coin: 33,
+                    HP: 100,
+                    HP_MAX: 120,
+                    MP: 100,
+                    MP_MAX: 120,
+                    EXP: 20,
+                    EXP_MAP: 30,
+                    rank: 1,
+                    avatar: "resource/avatar/qiangu.jpg",
+                    figure: "resource/avatar/qiangu.jpg"
+                },
+                battleAttr: {
+                    ATK: 23,
+                    DEF: 12,
+                    agility: 1,
+                    luck: 1
+                },
+                skills: {
+                    "magic0": { rank: 1 }
+                }
+            },
+            common: {
+                goods: {
+                    "HP1": { num: 2 }
+                },
+                equipment: {
+                    "armor1": { num: 1, used: true, usedFor: "qiangu" }
+                },
+                task: "task1"
+            }
+
+        }
 
 
     };
 
     System.prototype.init = function() {
-        this.loadSysData();
 
         var sysNames = ["loading", "intro", "mainMenu", "avatar", "sysMenu", "roleData", "goods", "record"];
         for(var i = 0; i < sysNames.length; i++){
@@ -29,29 +81,51 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
             var menu = document.getElementById(name);
             menu.addEventListener("click", this.bindEvent(name), false);
         }
+
+    };
+
+    System.prototype.setDetailsJson = function(data) {
+        console.info("setDetailsJson", data);
+        this.detailsJson = data;
+    };
+
+    System.prototype.getData = function(id) {
+        var data = localStorage.getItem("record" + id);
+        if(data) return JSON.parse(data);
+        else return "";
+    };
+    System.prototype.saveData = function(data, id) {
+        localStorage.setItem("record" + id, JSON.stringify(data));
     };
 
     System.prototype.showIntro = function() {
+        console.log("system showIntro");
         this.state = "intro";
         this.sys["intro"].style.display = "block";
         this.sys["intro"].style.backgroundPositionX = "100%";
         this.introMoving = true;        
+    };
+    System.prototype.hideIntro = function() {
+        this.sys["intro"].style.display = "none";
+        this.introMoving = false;
+        this.showMainMenu();
+        this.state = "";       
     };
 
     System.prototype.showAvatar = function() {
         this.sys["avatar"].style.display = "block";
 
         this.sys["record"].style.display = "none";
-        var playerData = this.gameData.playersAttr[0];
+        var basicAttr = this.gameData.playerAttr.basicAttr;
         var rankSpan = this.sys["avatar"].getElementsByClassName("rank")[0];
-        rankSpan.innerHTML = playerData.rank;
+        rankSpan.innerHTML = basicAttr.rank;
         var hpDiv = this.sys["avatar"].getElementsByClassName("HP")[0];
         var mpDiv = this.sys["avatar"].getElementsByClassName("MP")[0];
         var expDiv = this.sys["avatar"].getElementsByClassName("EXP")[0];
 
-        hpDiv.style.width = playerData.HP + "px";
-        mpDiv.style.width = playerData.MP + "px";
-        expDiv.style.width = playerData.EXP + "px";
+        hpDiv.style.width = basicAttr.HP + "px";
+        mpDiv.style.width = basicAttr.MP + "px";
+        expDiv.style.width = basicAttr.EXP + "px";
 
         
     };
@@ -68,17 +142,19 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
     };
 
     System.prototype.showLoading = function() {
-        console.log("before showLoading", this.app.mode);
-        this.app.mode = "system";
-        console.log("after showLoading", this.app.mode);
+        this.app.changeMode("system");
         this.sys["loading"].style.display = "block";
     };
-    System.prototype.hideLoading = function() {
+    System.prototype.hideLoading = function(callback) {
         var that = this;
-        console.log('system hideLoading', that);
         this.sys["loading"].style.opacity = 1;
         utils.hide(this.sys["loading"], function(){
-            that.app.mode = "normal";
+            if(callback){
+                callback.apply(that);
+            }else{
+                that.app.changeMode("normal");
+            }
+            
         });
     };
 
@@ -86,9 +162,9 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
 
         this.state = "sysMenu";
         this.sys["sysMenu"].style.display = "block";
-        var playerData = this.gameData.playersAttr[0];
+        var basicAttr = this.gameData.playerAttr.basicAttr;
         var coinSpan = this.sys["sysMenu"].getElementsByClassName("coin")[0];
-        coinSpan.innerHTML = playerData.coin;       
+        coinSpan.innerHTML = basicAttr.coin;       
         // default
         this.showRoleData();
     };
@@ -98,16 +174,16 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         this.sys["roleData"].style.display = "block";
         this.currLayer = this.sys["roleData"];
 
-        var playerData = this.gameData.playersAttr[0];
+        var basicAttr = this.gameData.playerAttr.basicAttr;
         var rankSpan = this.sys["roleData"].getElementsByClassName("rank")[0];
-        rankSpan.innerHTML = playerData.rank;
+        rankSpan.innerHTML = basicAttr.rank;
         var hpDiv = this.sys["roleData"].getElementsByClassName("HP")[0];
         var mpDiv = this.sys["roleData"].getElementsByClassName("MP")[0];
         var expDiv = this.sys["roleData"].getElementsByClassName("EXP")[0];
 
-        hpDiv.style.width = playerData.HP + "px";
-        mpDiv.style.width = playerData.MP + "px";
-        expDiv.style.width = playerData.EXP + "px";
+        hpDiv.style.width = basicAttr.HP + "px";
+        mpDiv.style.width = basicAttr.MP + "px";
+        expDiv.style.width = basicAttr.EXP + "px";
         
 
     };
@@ -128,7 +204,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
             console.log("detailsJson", this.detailsJson);
             goodsList.innerHTML = "<li class='head'> <span> name </span> <span> number </span> </li>";
 
-            var goodsData = this.gameData.goods;
+            var goodsData = this.gameData.common.goods;
             for(var k  in goodsData){
                 var data = goodsData[k];
                 var detail = this.detailsJson.goods[k];
@@ -188,7 +264,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
 
         if(!this.sys["record"].dataset.updated){
             for(var i = 0; i < this.RECORD_NUM; i++){
-                var data = this.app.record.getData(i);
+                var data = this.getData(i);
                 if(data){
                     this.updateRecordView(data, i);
                 }
@@ -212,12 +288,11 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         data.player = this.app.getPlayerData();
 
         this.updateRecordView(data, id);
-
-        
-        this.app.saveData(data, id);
+        this.saveData(data, id);
     };
     System.prototype.readRecord = function(id) {
-        this.app.readRecord(id);
+        var data = this.getData(id);
+        data && this.app.startGame(data);
     };
     System.prototype.updateRecordView = function(data, id) {
         console.log("updateRecordView", data);
@@ -244,13 +319,13 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
 
             switch(stuff[0]){
                 case "coin":
-                    this.gameData.playersAttr[0].coin += stuff[2];
+                    this.gameData.playerAttr.coin += stuff[2];
                     break;
                 case "goods":
-                    if(this.gameData.goods[stuff[1]]){
-                        this.gameData.goods[stuff[1]].num += stuff[2];
+                    if(this.gameData.common.goods[stuff[1]]){
+                        this.gameData.common.goods[stuff[1]].num += stuff[2];
                     }else{
-                        this.gameData.goods[stuff[1]] = {
+                        this.gameData.common.goods[stuff[1]] = {
                             num: stuff[2]
                         };
                     }              
@@ -276,7 +351,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         switch(command){
             case "menuStart":
                 this.sys["mainMenu"].style.display = "none";
-                this.app.newGame();
+                this.app.startGame(this.defaultData);
                 break;
             case "menuRecord":
                 this.sys["mainMenu"].style.display = "none";
@@ -306,11 +381,10 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         this.introMoving && this.moveIntro();
     };
 
-
     System.prototype.moveIntro = function() {
 
         var prev = this.sys["intro"].style.backgroundPositionX.slice(0, -1);
-        this.sys["intro"].style.backgroundPositionX = (prev - 0.04) + "%";
+        this.sys["intro"].style.backgroundPositionX = (prev - this.MOVE_INTRO_SPEED) + "%";
 
     };
 
@@ -319,10 +393,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         switch(keyCode){
             case 27:
                 if(this.state === "intro"){
-                    this.sys["intro"].style.display = "none";
-                    this.introMoving = false;
-                    this.showMainMenu();
-                    this.state = "";
+                    this.hideIntro();
                 }else if(this.state === "sysMenu"){
                     this.sys["sysMenu"].style.display = "none";
                     this.showAvatar();
@@ -347,17 +418,6 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
 
     };
 
-    System.prototype.loadSysData = function() {
-
-        var sysLoader = new PIXI.JsonLoader("resource/system/details.json", false);
-        sysLoader.on("loaded", this.onSysDataLoaded.bind(this));
-        sysLoader.load(); 
-    };
-    System.prototype.onSysDataLoaded = function(data) {
-        console.log("sys data loaded", data);
-        this.detailsJson = data.content.json;   
-
-    };
 
     return System;
 

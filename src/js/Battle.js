@@ -1,4 +1,4 @@
-define(['lib/pixi', 'Anime'], function (PIXI, Anime) {
+define(['lib/pixi', 'Anime', 'Enemy'], function (PIXI, Anime, Enemy) {
 
     var Battle = function(container, scene){
 
@@ -46,11 +46,8 @@ define(['lib/pixi', 'Anime'], function (PIXI, Anime) {
 
         if(!this.bg) this.showBg(this.bgInfo[0]);
 
-        if(this.enemyAttrJson){
-            this.createEnemy();
-        }else{
-            this.loadEnemyData();
-        }
+        this.createEnemy();
+
     };
 
     Battle.prototype.showBg = function(data) {
@@ -63,47 +60,42 @@ define(['lib/pixi', 'Anime'], function (PIXI, Anime) {
 
     };
 
-    Battle.prototype.loadEnemyData = function() {
-
-        var enemyLoader = new PIXI.JsonLoader("resource/enemy/enemyAttr.json", false);
-        enemyLoader.on("loaded", this.onEnemyDataLoaded.bind(this));
-        enemyLoader.load(); 
-    };
-    Battle.prototype.onEnemyDataLoaded = function(data) {
-        console.log("enemy attr data loaded", data);
-        this.enemyAttrJson = data.content.json; 
-
-        this.createEnemy();
-
-
-    };
-
     Battle.prototype.createEnemy = function() {
 
-        console.log("this.enemyData", this.enemyData);
-
         for(var i = 0; i < this.enemyData.length; i++){
-            console.log("createEnemy", i);
+            console.log("createEnemy", i, this.enemiesJson);
             var e = this.enemyData[i];
-            var enemyAttr = this.enemyAttrJson[e[0]];
+            var enemyAttr = this.enemiesJson.enemiesAttr[e[0]];
+            var textureData = this.enemiesJson.textureDatas[enemyAttr.textureIndex];
+
             for(var j = 0; j < e[1]; j++){
 
                 var pos = this.enemyPos.pop();
+                var data = {
+                    textureData: textureData,
+                    start: {
+                        x: pos[0],
+                        y: pos[1]
+                    }
+                }
 
-                var enemy = new Anime(this.container, this);
+                var enemy = new Enemy(this.container, data, this);
+                enemy.actionChanged("stand", "R");
+
+                /*var enemy = new Anime(this.container, this);
                 enemy.loadAction(enemyAttr.textureData);
                 var animeAttr = enemyAttr.animeAttr;
                 animeAttr.x = pos[0];
                 animeAttr.y = pos[1];
                 animeAttr.category = "battleEnemy";
-                enemy.draw("R", animeAttr);
+                enemy.draw("R", animeAttr);*/
                 this.enemies.push(enemy);
 
             }
 
         }
 
-        this.createPlayer();
+        //this.createPlayer();
     };
 
     Battle.prototype.createPlayer = function() {

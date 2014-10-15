@@ -5,22 +5,26 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
         this.container = container;
         this.app = app;
 
+
+        // consts
         this.MOVE_STEP = 80;
         
+        // default
         this.enemies = [];
         this.init();
 
     };
 
     Scene.prototype.init = function(){
+        /*
+        layer[0]: bg,  layer[1]: player, layer[2]: 遮挡人物的物品, layer[3]: battle 
+        */
         this.layer = [];
         for(var i = 0; i < 4; i++){
             this.layer[i] = new PIXI.DisplayObjectContainer();
             this.container.addChild(this.layer[i]);
         }
-        /*
-        layer[0]: bg,  layer[1]: player, layer[2]: 遮挡人物的物品, layer[3]: battle 
-        */
+
 
         this.dialogBox = document.getElementById("dialogBox");
 
@@ -33,9 +37,13 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
 
     };
 
+    Scene.prototype.setEnemiesJson = function(data) {
+        this.enemiesJson = data;
+        this.battle.enemiesJson = data;
+    };
+
     Scene.prototype.loadStoryData = function(name) {
 
-        //this.mode = "loading";
         this.app.system.showLoading();
 
         var storyLoader = new PIXI.JsonLoader("resource/story/" + name + ".json", false);
@@ -48,7 +56,6 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
         this.storyData = data.content.json;
 
         this.loadMapData(this.storyData.map);
-     
 
     };
 
@@ -77,16 +84,15 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
             image.load();
         }
 
-        //this.layer[3].removeChild(this.loading);
-
         var boundary = {
             width: this.mapData.width * this.mapData.tilewidth,
             height: this.mapData.height * this.mapData.tileheight
         }
-        this.setData(this.player, {boundary: boundary});
+
+        this.player.setBoundary(boundary);
 
         console.log("data loaded, TextureCache", PIXI.TextureCache);
-        //this.mode = "normal";
+
         this.app.system.hideLoading();
         this.enter();  // enter the scene
 
@@ -98,7 +104,6 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
         var baseTexture = image.texture.baseTexture;
         var widthNum = Math.floor(tileset.imagewidth/tileset.tilewidth);
         var heightNum = Math.floor(tileset.imageheight/tileset.tileheight);
-        console.log('widthNum', widthNum, heightNum);
         for(var i = 0; i < widthNum; i++){
             for(var j = 0; j < heightNum; j++){
                 var textureName = this.name + (tileset.firstgid + j*widthNum + i);
@@ -120,15 +125,16 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
     Scene.prototype.enter = function(){
         console.log("enter scene");
 
-        this.setData(this.map, {name: this.name, json: this.mapData});
-        this.map.drawAll();
+        this.map.drawAll(this.name, this.mapData);
 
         this.enemies = [];
         if(this.storyData.enemy){
             for(var i = 0; i < this.storyData.enemy.length; i++){
                 var enemyData = this.storyData.enemy[i];
-                var enemy = new Enemy(this.layer[0], enemyData);
-                enemy.animate();
+                enemyData.textureData = this.enemiesJson.textureDatas[enemyData.textureIndex];
+                enemyData.ways = this.enemiesJson.waysDatas[enemyData.waysIndex];
+                var enemy = new Enemy(this.layer[0], enemyData, this);
+                enemy.goAround();
                 this.enemies.push(enemy);
 
             }
@@ -152,7 +158,7 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
             enemy.update();
         }
        
-        this.map.loaded && this.player.update();
+        this.player.update();
     };
 
     Scene.prototype.getEnemies = function() {
@@ -240,8 +246,6 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
             }
         };
 
-        console.log('haaa', this.container.x, this.container.width);
-
         if(this.mapData){
             var adjust = this.mapData.adjust;
             var actualHeight = this.mapData.height * this.mapData.tileheight * adjust.contentY;
@@ -293,14 +297,6 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
     };
 
     Scene.prototype.addWalkin = function(obj) {
-        console.log('addWalkin', obj, this.player);
-
-        if(obj.type === "mark"){
-            if(obj.name === "exit"){
-                obj.args = { mapName: obj.properties.nextMap, status: obj.properties.status };
-                obj.callback = this.goToMap.bind(this);
-            }
-        }
 
         this.player.addWalkinObj(obj);
 
@@ -310,21 +306,12 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
         this.player.walkinObjs = [];
     };
 
-    Scene.prototype.goToMap = function(args) {
+    Scene.prototype.goToMap = function(mapName) {
 
-        console.log('goToMap', args, this);
-        // clear scene info
+        console.log('goToMap', mapName);
 
-
-        if(args.status){
-            console.log("update player", args.status);
-            this.player.x = args.status.x;
-            this.player.y = args.status.y;
-            this.player.direction = args.status.dire;
-        }
-
-        this.name = args.mapName;
-        this.loadStoryData(args.mapName);
+        this.name = mapName;
+        this.loadStoryData(mapName);
 
     };
 
@@ -384,15 +371,12 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
         console.log("seted", obj);
     };
 
-    Scene.prototype.initPlayer = function(data) {
-
-        this.player.setData(data);
-    };
 
     Scene.prototype.getPlayerData = function() {
         var playerData = this.player.playerData;
         playerData.x = this.player.x;
         playerData.y = this.player.y;
+        playerData.mapName = this.name;
         playerData.displayName = this.storyData.displayName;
         return playerData;
     };

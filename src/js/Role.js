@@ -1,4 +1,4 @@
-define(['lib/pixi'], function (PIXI) {
+define(['lib/pixi', 'utils', 'Anime'], function (PIXI, utils, Anime) {
 
     var logged = {};
 
@@ -8,87 +8,70 @@ define(['lib/pixi'], function (PIXI) {
         this.scene = scene;
 
 
+        // defaults
         this.actions = {};
 
-        this.collisionSpace = 5;
         this.mapSpace = 30;
 
         this.barriers = [];
-       
-
         this.walkinObjs = [];
+        this.boundary = { width: 0, height: 0 };
+        this.loaded = false;
+
+    };
+    utils.extend(Role, Anime);
 
 
 
+    Role.prototype.initPlayer = function(data) {
+
+        this.playerData = data;
+
+        this.animationSpeed = data.animationSpeed || 0.05; 
+        this.status = {
+            action: "stand",
+            direction: data.dire
+        };
+        this.x = data.x;
+        this.y = data.y;
+        this.vX = data.vX;
+        this.vY = data.vY;
+
+        this.loadAction(data.textureData, this.draw); 
 
     };
 
-    Role.prototype.load = function(){
 
-        var image = new PIXI.ImageLoader(this.textureData.path);
-        image.on("loaded", function(){
-            console.log('image loaded');
-        });
-
-        var baseTexture = image.texture.baseTexture;
-        var imgWidth = this.textureData.imgWidth,
-            imgHeight = this.textureData.imgHeight;
-        for(var i = 0; i < this.textureData.actions.length; i++){
-            for(var j = 0; j < this.textureData.frame_num; j++){
-                var action_name = this.textureData.actions[i];
-                PIXI.TextureCache[action_name+j] = new PIXI.Texture(baseTexture, {
-                                                   x: j*imgWidth,
-                                                   y: i*imgHeight,
-                                                   width: imgWidth,
-                                                   height: imgHeight
-                                               });
-            }
-        }
-        console.log('pixi TextureCache', PIXI.TextureCache);
-        
-        image.load();
-
-        var frames = [];
-        var action_name;
-
-        for(var i = 0; i < this.textureData.actions.length; i++){
-            frames = [];
-            action_name = this.textureData.actions[i];
-            for(var j = 0; j < this.textureData.frame_num; j++){
-
-                
-                var texture = PIXI.Texture.fromFrame(action_name + j);
-                frames.push(texture);
-
-            }
-            this.actions[action_name] = new PIXI.MovieClip(frames);
-            this.actions[action_name].scale.x = this.textureData.ratio;
-            this.actions[action_name].scale.y = this.textureData.ratio;
-        }
-
-        this.draw();
-
-        
-
-
-    };
 
     Role.prototype.draw = function() {
 
-        action_name = "walk" + this.status.direction;
+        this.actionChanged("stand", this.status.direction);
+        this.loaded = true;
 
-        this.currAction  && this.container.removeChild(this.currAction);
-
-        this.currAction = this.actions[action_name];
-        console.log("drawit", this.actions, action_name);
-        this.currAction.animationSpeed = this.animationSpeed;
-
-        this.currAction.position.x = this.x;
-        this.currAction.position.y = this.y;
-
-        this.container.addChild(this.currAction);
     };
 
+
+    // apis
+    Role.prototype.setBarriers = function(barriers) {
+        this.barriers = barriers;
+    };
+
+    Role.prototype.setBoundary = function(boundary) {
+        this.boundary = boundary;
+    };
+
+    Role.prototype.addWalkinObj = function(obj) {
+        this.walkinObjs.push(obj);
+
+    };
+
+
+
+
+
+
+
+    
     Role.prototype.moveToIt = function(e) {
         if(this.scene.mode === "dialog") return;
         var pos = e.getLocalPosition(this.scene.container);
@@ -117,44 +100,16 @@ define(['lib/pixi'], function (PIXI) {
         console.log("move to target", this.currTarget);
     };
 
-    Role.prototype.actionChanged = function(action, direction){
 
-        console.log('actionChanged to', action, direction);
-        this.container.removeChild(this.currAction);
-
-        // update status
-        this.status.action = action;
-        this.status.direction = direction;
-
-        var action_name;
-        switch(action){
-            case "walk":
-                action_name = "walk" + this.status.direction;
-                this.currAction = this.actions[action_name];
-                this.currAction.play();
-                break;
-            case "stand":
-                action_name = "walk" + this.status.direction;
-                this.currAction = this.actions[action_name];
-                this.currAction.stop();
-                break;
-        }
-
-        this.currAction.position.x = this.x;
-        this.currAction.position.y = this.y;
-        this.currAction.animationSpeed = this.animationSpeed;
-        this.container.addChild(this.currAction);
-
-
-    };
 
     Role.prototype.update = function(){
+        if(!this.loaded) return;
 
 
         var that = this;
 
         var barriers = this.barriers;
-        var boundary = this.boundary || {};
+        var boundary = this.boundary;
 
         var pX = that.x + that.currAction.width/2;
         var pY = that.y + that.currAction.height/2;
@@ -215,79 +170,53 @@ define(['lib/pixi'], function (PIXI) {
             }
         }
 
-        // walkin events detect
+        /* 
+            walkin events detect
+        */
 
         for(var i = 0; i < this.walkinObjs.length; i++){
-            
+
             var obj = this.walkinObjs[i];
             if(obj.triggered) continue;
+            var dire = obj.properties.requireDire;
+            if(dire && dire !== this.status.direction) continue; 
 
-            if(obj.type === "mark"){
-                var dire = obj.properties.dire;
-                if(this.status.direction !== dire) continue;
-
-                switch(dire){
-                    case "U":
-                        if(pX>obj.x && pX<obj.x+obj.width && pY<obj.y){
-                            obj.callback(obj.args);
-                            obj.triggered = true;
-                        }
-                        break;
-                    case "D":
-                        if(pX>obj.x && pX<obj.x+obj.width && pY>obj.y){
-                            console.log("rolejs walkin obj args", obj.args, obj);
-                            obj.callback(obj.args);
-                            obj.triggered = true;
-                        }
-                        break;
-                    case "R":
-                        if(pY>obj.y && pY<obj.y+obj.height && pX>obj.x){
-                            obj.callback(obj.args);
-                            obj.triggered = true;
-                        }
-                        break;
-                    case "L":
-                        if(pY>obj.y && pY<obj.y+obj.height && pX<obj.x){
-                            obj.callback(obj.args);
-                            obj.triggered = true;
-                        }
-                        break;
+            var scope = obj.scope;
+            if(pY>scope.y && pY<scope.y+scope.height && pX>scope.x && pX<scope.x+scope.width){
+                obj.activated = true;
+                if(obj.callback) {
+                    obj.callback.apply(that);
                 }
             }else{
-                var scope = obj.scope;
-                if(pY>scope.y && pY<scope.y+scope.height && pX>scope.x && pX<scope.x+scope.width){
-                    obj.activated = true;
-                }else{
-                    obj.activated = false;
-                }
+                obj.activated = false;
             }
-
-            
-
         }
 
 
-        // collsion detect  && boundary detect
+
+        /**
+            collsion detect  && boundary detect
+        */
         if(this.status.action === "walk"){
             switch(this.status.direction){
                 case "L":
                     var isCollision = false;
-                    isCollision = (pX < this.mapSpace) || collisionDetect("L");
+                    isCollision = (pX < this.mapSpace) || utils.collDetect("L", barriers, pX, pY);
                     if(!isCollision) { this.x -= this.vX; this.scene.moveMap("L", this.vX);}  
                     break;
                 case "U":
                     var isCollision = false;
-                    isCollision = (pY < this.mapSpace) || collisionDetect("U");
+                    isCollision = (pY < this.mapSpace) || utils.collDetect("U", barriers, pX, pY);
                     if(!isCollision) { this.y -= this.vY; this.scene.moveMap("U", this.vY);}                  
                     break;
                 case "R":
                     var isCollision = false;
-                    isCollision = (pX > this.boundary.width - this.mapSpace) ||  collisionDetect("R");
+                    isCollision = (pX > this.boundary.width - this.mapSpace) ||  utils.collDetect("R", barriers, pX, pY);
                     if(!isCollision) { this.x += this.vX; this.scene.moveMap("R", this.vX);}        
                     break;
                 case "D":
                     var isCollision = false;
-                    isCollision = (pY > this.boundary.height - this.mapSpace) || collisionDetect("D");
+                    isCollision = (pY > this.boundary.height - this.mapSpace) || utils.collDetect("D", barriers, pX, pY);
                     if(!isCollision) { this.y += this.vY; this.scene.moveMap("D", this.vY);}              
                     break;
 
@@ -298,44 +227,12 @@ define(['lib/pixi'], function (PIXI) {
 
         }
 
-        function collisionDetect(dire){
-            var space = that.collisionSpace;
-            for(var i = 0; i < barriers.length; i++){
-                
-                if(barriers[i].ellipse){
-                    var r = barriers[i].width/2;
-                    var cX = barriers[i].x + r;
-                    var cY = barriers[i].y + r;
-                    var dist2 = (cX - pX)*(cX - pX) + (cY - pY)*(cY - pY);
-                    if(dire=="L" && pX>cX && dist2 < r*r) return true;
-                    if(dire=="U" && pY>cY && dist2 < r*r) return true;
-                    if(dire=="R" && pX<cX && dist2 < r*r) return true;
-                    if(dire=="D" && pY<cY && dist2 < r*r) return true;
-                }else{
-                    var b = {};
-                    b.x = barriers[i].x;
-                    b.y = barriers[i].y;
-                    b.w = barriers[i].width;
-                    b.h = barriers[i].height;
-                    if(dire=="L" && pY>b.y && pY<b.y+b.h && pX>b.x && pX<b.x+b.w+space)
-                        return true;
-                    if(dire=="U" && pY>b.y && pY<b.y+b.h+space && pX>b.x && pX<b.x+b.w)
-                        return true;
-                    if(dire=="R" && pY>b.y && pY<b.y+b.h && pX>b.x-space && pX<b.x+b.w)
-                        return true;
-                    if(dire=="D" && pY>b.y-space && pY<b.y+b.h && pX>b.x && pX<b.x+b.w)
-                        return true;
-                    
-                }
-            }
-            return false;
-
-        }
     
 
     };
 
     Role.prototype.onkeydown = function(keyCode){
+        if(!this.loaded) return;
 
 
         switch(keyCode){
@@ -376,28 +273,7 @@ define(['lib/pixi'], function (PIXI) {
 
     };
 
-    Role.prototype.addWalkinObj = function(obj) {
-        this.walkinObjs.push(obj);
 
-    };
-
-    Role.prototype.setData = function(data) {
-        this.playerData = data;
-        
-        this.textureData = data.textureData;
-        this.status = {
-            action: "stand",
-            direction: data.dire
-        }
-        this.x = data.x;
-        this.y = data.y;
-
-        this.vX = data.vX;
-        this.vY = data.vY;
-        
-        this.animationSpeed = 0.05;
-        this.load();
-    };
 
 
     return Role;

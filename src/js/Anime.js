@@ -1,25 +1,11 @@
 define(['lib/pixi'], function (PIXI) {
 
-    var Anime = function(container, parent){
-
-    	this.container = container;
-        this.parent = parent;
-
-        // default data
-        this.actions = {};
-        this.x = 0;
-        this.y = 0;
-        this.vX = 0;
-        this.vY = 0;
-
-        this.loaded = false;
+    var Anime = function(){
 
     };
 
-    Anime.prototype.loadAction = function(textureData){
-    	console.log("load action");
-
-        this.animationSpeed = textureData.speed || 0.09;
+    Anime.prototype.loadAction = function(textureData, callback){
+    	console.log("anime load action");
 
         var image = new PIXI.ImageLoader(textureData.path);
         image.on("loaded", function(){
@@ -62,17 +48,20 @@ define(['lib/pixi'], function (PIXI) {
             this.actions[action_name].scale.y = textureData.ratio;
         }
 
-        this.loaded = true;  
-
+        if(callback) callback.call(this);
 
     };
 
     Anime.prototype.actionChanged = function(action, direction){
-        if(!this.loaded) return;
 
-        console.log('anime actionChanged to', action, direction);
         this.currAction && this.container.removeChild(this.currAction);
 
+        // update status
+        if(this.status){
+            this.status.action = action;
+            this.status.direction = direction;
+        }
+        
         var action_name;
         switch(action){
             case "walk":
@@ -91,21 +80,14 @@ define(['lib/pixi'], function (PIXI) {
         this.currAction.position.y = this.y;
         this.currAction.animationSpeed = this.animationSpeed;
         this.container.addChild(this.currAction);
-
-
+    };
+    Anime.prototype.setPos = function(pos) {
+        this.x = pos.x;
+        this.y = pos.y;
+        this.actionChanged("stand", pos.dire);
     };
 
-    Anime.prototype.draw = function(dire, attr) {
 
-        this.x = attr.x;
-        this.y = attr.y;
-        this.vX = attr.vX;
-        this.vY = attr.vY;
-        this.category = attr.category;
-
-        this.actionChanged("stand", dire);
-
-    };
 
     Anime.prototype.goWay = function(way) {
 
@@ -115,14 +97,14 @@ define(['lib/pixi'], function (PIXI) {
     };
 
 
-    Anime.prototype.update = function() {
+    Anime.prototype.updateWay = function() {
     	
     	if(!this.currWay) return;
 
     	if(this.currWay.dist < 0){ 
             if(this.currWay.callback && !this.currWay.triggered){
-                this.currWay.callback.call(this);
                 this.currWay.triggered = true;
+                this.currWay.callback.call(this);
             }
     	}else{
     		switch(this.currWay.dire){
