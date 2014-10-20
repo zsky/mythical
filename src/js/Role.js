@@ -50,6 +50,27 @@ define(['lib/pixi', 'utils', 'Anime'], function (PIXI, utils, Anime) {
 
     };
 
+    Role.prototype.stepBack = function(back) {
+        switch(this.status.direction){
+            case "L":
+                this.x += back;
+                break;
+            case "U":
+                this.y += back;
+                break;
+            case "R":
+                this.x -= back;
+                break;
+            case "D":
+                this.y -= back;
+                break;
+        }
+        this.actionChanged("stand", this.status.direction);
+        this.notBattle = true;
+        var that = this;
+        setTimeout(function(){ that.notBattle = false; }, 600);
+    };
+
 
     // apis
     Role.prototype.setBarriers = function(barriers) {
@@ -151,7 +172,7 @@ define(['lib/pixi', 'utils', 'Anime'], function (PIXI, utils, Anime) {
 
         // enemies detect
         var enemies = this.scene.getEnemies();
-        if(enemies){
+        if(!this.notBattle && enemies){
             if(!logged[enemies]){
                 console.log("enemies detectt", enemies);
                 logged[enemies] = true;
@@ -163,8 +184,8 @@ define(['lib/pixi', 'utils', 'Anime'], function (PIXI, utils, Anime) {
                 var dy2 = (enemy.y - pY) * (enemy.y - pY);
                 var r = enemy.triggerRadius;
                 if(dx2 + dy2 < r * r){
-                    console.log("haha i will kill you , into battle");
-                    this.scene.toBattle(enemy.battleData);
+                    console.log("haha i will kill you , into battle", enemy.battleData);
+                    this.scene.app.toBattle(enemy.battleData, enemy);
                     return;
                 }
             }

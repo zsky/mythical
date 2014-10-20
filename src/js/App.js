@@ -1,4 +1,4 @@
-define(['Scene', 'System', 'lib/pixi'], function (Scene, System, PIXI) {
+define(['Scene', 'System', 'Battle', 'lib/pixi'], function (Scene, System, Battle, PIXI) {
 
     var App = function(){
 
@@ -19,9 +19,13 @@ define(['Scene', 'System', 'lib/pixi'], function (Scene, System, PIXI) {
         this.sceneContainer = new PIXI.DisplayObjectContainer();
         this.scene = new Scene(this.sceneContainer, this);
 
+        this.battleContainer = new PIXI.DisplayObjectContainer();
+        this.battle = new Battle(this.battleContainer, this);
+
         this.system = new System(this);
 
         this.stage.addChild(this.sceneContainer);
+        this.stage.addChild(this.battleContainer);
 
         this.listenEvents();    
 
@@ -55,6 +59,7 @@ define(['Scene', 'System', 'lib/pixi'], function (Scene, System, PIXI) {
     App.prototype.onEnemyDataLoaded = function(data) {
         console.log("enemy attr data loaded", data.content.json);
         this.scene.setEnemiesJson(data.content.json); 
+        this.battle.setEnemiesJson(data.content.json);
 
         this.system.hideLoading(function(){
              //this.showIntro();  // exec in system.js, not change mode
@@ -78,6 +83,8 @@ define(['Scene', 'System', 'lib/pixi'], function (Scene, System, PIXI) {
                 that.scene.onkeydown(e.keyCode);
             } else if(that.mode === "system"){
                 that.system.onkeydown(e.keyCode);
+            } else if(that.mode === "battle"){
+                that.battle.onkeydown(e.keyCode);
             }
             
         });
@@ -87,6 +94,8 @@ define(['Scene', 'System', 'lib/pixi'], function (Scene, System, PIXI) {
                 that.scene.onkeyup(e.keyCode);
             } else if(that.mode === "system"){
                 that.system.onkeydown(e.keyCode);
+            } else if(that.mode === "battle"){
+                that.battle.onkeydown(e.keyCode);
             }
             
         });
@@ -111,6 +120,8 @@ define(['Scene', 'System', 'lib/pixi'], function (Scene, System, PIXI) {
             this.scene.update();
         } else if(this.mode === "system"){
             this.system.update();
+        } else if(this.mode === "battle"){
+            this.battle.update();
         }
 
         requestAnimFrame(this.update.bind(this));
@@ -132,6 +143,12 @@ define(['Scene', 'System', 'lib/pixi'], function (Scene, System, PIXI) {
         this.system.showAvatar();
     };
 
+    App.prototype.toBattle = function(battleData, origEnemy) {
+        this.changeMode("battle");
+        //this.system.hideAvatar();
+        this.battle.enter(battleData, origEnemy);
+    };
+
 
 
     // apis
@@ -148,6 +165,12 @@ define(['Scene', 'System', 'lib/pixi'], function (Scene, System, PIXI) {
     };
     App.prototype.getStuff = function(data) {
         this.system.getStuff(data);
+    };
+    App.prototype.getBattleAttr = function() {
+        return this.system.gameData.playerAttr.battleAttr;
+    };
+    App.prototype.updatePlayerHP = function(damage) {
+        this.system.updatePlayerHP(damage);
     };
     
 

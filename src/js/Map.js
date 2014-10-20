@@ -11,7 +11,6 @@ define(['lib/pixi'], function (PIXI) {
 
     Map.prototype.clearMap = function(){
         this.barriers = [];
-        this.scene.clearWalkinobjs();
         var layers = [this.bgContainer, this.topContainer];
         for(var i = 0; i < layers.length; i++){
             var layer = layers[i];
@@ -22,8 +21,6 @@ define(['lib/pixi'], function (PIXI) {
     };
 
     Map.prototype.drawAll = function(name, mapData){
-
-        this.clearMap();
 
         this.name = name;
         this.json = mapData;

@@ -30,7 +30,6 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
 
         this.player = new Role(this.layer[1], this);
         this.map = new Map(this.layer[0], this.layer[2], this);
-        this.battle = new Battle(this.layer[3], this);
 
         this.container.interactive = true;
         //this.container.click = this.player.moveToIt.bind(this.player);
@@ -39,7 +38,6 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
 
     Scene.prototype.setEnemiesJson = function(data) {
         this.enemiesJson = data;
-        this.battle.enemiesJson = data;
     };
 
     Scene.prototype.loadStoryData = function(name) {
@@ -93,7 +91,9 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
 
         console.log("data loaded, TextureCache", PIXI.TextureCache);
 
-        this.app.system.hideLoading();
+        this.app.system.hideLoading(function(){
+            console.log("callback do nothing");
+        });
         this.enter();  // enter the scene
 
     };
@@ -140,6 +140,19 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
             }
         }
 
+        // just for test
+        /*var battleData = {
+            "enemyNum": 3,
+            "enemies": [
+                ["e1", 3]
+            ],
+            "gain": [
+                [["coin", "coin", 9], ["goods", "HP1", 2], ["goods", "HP2", 2]],
+                [["coin", "coin", 5], ["goods", "HP1", 3], ["goods", "HP2", 1]]
+            ]
+        }
+        this.app.toBattle(battleData);*/
+
 
         this.resizeScene();  // resize scene
              
@@ -164,11 +177,133 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
     Scene.prototype.getEnemies = function() {
         return this.enemies;
     };
+    Scene.prototype.removeEnemy = function(enemy) {
+        console.info("scene removeEnemy", enemy, "this.enemies", this.enemies, "equal?", enemy === this.enemies[0]);
+        for(var i = this.enemies.length - 1; i > 0; i--){
+            var e = this.enemies[i];
+            if(e === enemy) {
+                this.enemies.splice(i, 1);
+                if(this.enemies.length < 1) console.log("enemies are all dead");
+                return;
+            }
+        }
+    };
 
     Scene.prototype.toBattle = function(battleData) {
         this.mode = "battle";
+        this.tempPos = {
+            x: this.container.x,
+            y: this.container.y
+        }
+        this.container.x = 0;
+        this.container.y = 0;
         this.app.hideAvatar();
+        console.log("scene.js to battle", battleData);
         this.battle.enter(battleData);
+    };
+
+    Scene.prototype.enterDialog = function(type, name) {
+        this.mode = "dialog";
+        var npc = this.storyData.npc[name];
+        this.currNpc = npc;
+        this.currDialog = {
+            words: npc.words
+        }
+        this.sayWords();
+    };
+
+    Scene.prototype.sayWords = function(){
+        var word = this.currDialog.words.shift();
+        console.log("sayWords", word);
+        if(word){
+            this.dialogBox.innerHTML = word;
+            this.dialogBox.style.display = "block";
+            //this.dialog.setText(word);
+        }else{
+            console.log("dialog over");
+            this.dialogBox.style.display = "none";
+            this.mode = "normal";
+            this.app.system.getStuff(this.currNpc.finalGet);
+        }
+        
+    };
+
+    Scene.prototype.addWalkin = function(obj) {
+
+        this.player.addWalkinObj(obj);
+
+    };
+
+    Scene.prototype.clearScene = function() {
+        // clear
+        this.player.walkinObjs = [];
+        this.container.x = 0;
+        this.container.y = 0;
+        this.map.clearMap();
+        this.mapData = null;
+        this.storyData = null;
+    };
+
+    Scene.prototype.goToMap = function(mapName) {
+
+        console.log('goToMap', mapName);
+        this.clearScene();
+
+        this.name = mapName;
+        this.loadStoryData(mapName);
+
+    };
+
+    Scene.prototype.moveMap = function(dire, speed) {
+        //console.log('scene moveMap');
+        var step;
+        var actualConWidth = this.container.width/this.container.scale.x;
+        var actualConHeight = this.container.height/this.container.scale.y;
+        switch(dire){
+            case "L": 
+                if(this.container.x > 0) return false;
+                //console.log("moveMap L", this.container.x, speed);
+                this.container.x += speed * this.container.scale.x;
+                break;
+            case "U": 
+                if(this.container.y > 0) return false;
+                //step = Math.min(this.MOVE_STEP, -this.container.x);
+                this.container.y += speed * this.container.scale.y;
+                break;
+            case "R": 
+                var dist = (this.container.width + this.container.x) - window.innerWidth;
+                if(dist < 0) return false;
+                this.container.x -= speed * this.container.scale.x;
+                break;
+            case "D": 
+                var dist = this.container.height + this.container.y - window.innerHeight;
+                if(dist < 0) return false;
+                //step = Math.min(this.MOVE_STEP, dist);
+                this.container.y -= speed * this.container.scale.y;
+                break;
+        }
+        return true;
+    };
+
+    Scene.prototype.clearLayers = function(layers){
+        this.container.x = 0;
+        this.container.y = 0;
+        for(var i = 0; i < layers.length; i++){
+            var layer = layers[i];
+            for (var j = layer.children.length - 1; j >= 0; j--) {
+                layer.removeChild(layer.children[j]);
+            };
+        }
+    };
+
+
+    Scene.prototype.getPlayerData = function() {
+        var playerData = this.player.playerData;
+        playerData.x = this.player.x;
+        playerData.y = this.player.y;
+        playerData.mapName = this.name;
+        playerData.displayName = this.storyData.displayName;
+        return playerData;
     };
 
     Scene.prototype.onkeydown = function(keyCode){
@@ -183,10 +318,7 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
             console.log('switch bg');
         } 
         if(keyCode === 79){  // o
-            console.log("check layer[1] children", this.layer[1].children);
-            console.log("check layer[2] children", this.layer[2].children);
             console.log("check player", this.player.x, this.player.y);
-            console.log("player walkinObjs", this.player.walkinObjs);
             console.log("enemies", this.enemies);
         }
         if(keyCode === 80){  // p
@@ -270,116 +402,7 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
     };
 
 
-    Scene.prototype.enterDialog = function(type, name) {
-        this.mode = "dialog";
-        var npc = this.storyData.npc[name];
-        this.currNpc = npc;
-        this.currDialog = {
-            words: npc.words
-        }
-        this.sayWords();
-    };
 
-    Scene.prototype.sayWords = function(){
-        var word = this.currDialog.words.shift();
-        console.log("sayWords", word);
-        if(word){
-            this.dialogBox.innerHTML = word;
-            this.dialogBox.style.display = "block";
-            //this.dialog.setText(word);
-        }else{
-            console.log("dialog over");
-            this.dialogBox.style.display = "none";
-            this.mode = "normal";
-            this.app.system.getStuff(this.currNpc.finalGet);
-        }
-        
-    };
-
-    Scene.prototype.addWalkin = function(obj) {
-
-        this.player.addWalkinObj(obj);
-
-    };
-
-    Scene.prototype.clearWalkinobjs = function(){
-        this.player.walkinObjs = [];
-    };
-
-    Scene.prototype.goToMap = function(mapName) {
-
-        console.log('goToMap', mapName);
-
-        this.name = mapName;
-        this.loadStoryData(mapName);
-
-    };
-
-    Scene.prototype.moveMap = function(dire, speed) {
-        //console.log('scene moveMap');
-        var step;
-        var actualConWidth = this.container.width/this.container.scale.x;
-        var actualConHeight = this.container.height/this.container.scale.y;
-        switch(dire){
-            case "L": 
-                if(this.container.x > 0) return false;
-                //console.log("moveMap L", this.container.x, speed);
-                this.container.x += speed * this.container.scale.x;
-                break;
-            case "U": 
-                if(this.container.y > 0) return false;
-                //step = Math.min(this.MOVE_STEP, -this.container.x);
-                this.container.y += speed * this.container.scale.y;
-                break;
-            case "R": 
-                var dist = (this.container.width + this.container.x) - window.innerWidth;
-                if(dist < 0) return false;
-                this.container.x -= speed * this.container.scale.x;
-                break;
-            case "D": 
-                var dist = this.container.height + this.container.y - window.innerHeight;
-                if(dist < 0) return false;
-                //step = Math.min(this.MOVE_STEP, dist);
-                this.container.y -= speed * this.container.scale.y;
-                break;
-        }
-        return true;
-    };
-
-    Scene.prototype.clearLayers = function(layers){
-        this.container.x = 0;
-        this.container.y = 0;
-        for(var i = 0; i < layers.length; i++){
-            var layer = layers[i];
-            for (var j = layer.children.length - 1; j >= 0; j--) {
-                layer.removeChild(layer.children[j]);
-            };
-        }
-    };
-
-    Scene.prototype.setRoleData = function(data) {
-        this.setData(this.player, data);
-    };
-
- 
-    Scene.prototype.setData = function(obj, data) {
-        console.log("setData", obj, data);
-        var key;
-        for(key in data){
-            obj[key] = data[key];
-        }
-        console.log("seted", obj);
-    };
-
-
-    Scene.prototype.getPlayerData = function() {
-        var playerData = this.player.playerData;
-        playerData.x = this.player.x;
-        playerData.y = this.player.y;
-        playerData.mapName = this.name;
-        playerData.displayName = this.storyData.displayName;
-        return playerData;
-    };
 
     
 

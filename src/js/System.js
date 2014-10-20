@@ -1,5 +1,7 @@
 define(['lib/pixi', 'utils'], function (PIXI, utils) {
 
+    var logged = {};
+
     var System = function(app){
 
         this.app = app;
@@ -10,6 +12,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         // consts
         this.MOVE_INTRO_SPEED = 0.04;
         this.RECORD_NUM = 10;
+        this.RATINGBAR_WIDTH = 200;
 
         this.defaultData = {
             
@@ -44,12 +47,12 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
                 },
                 battleAttr: {
                     ATK: 23,
-                    DEF: 12,
-                    agility: 1,
+                    DEF: 22,
+                    rate: 1.5,
                     luck: 1
                 },
                 skills: {
-                    "magic0": { rank: 1 }
+                    "gold0": { rank: 1 }
                 }
             },
             common: {
@@ -69,13 +72,15 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
 
     System.prototype.init = function() {
 
-        var sysNames = ["loading", "intro", "mainMenu", "avatar", "sysMenu", "roleData", "goods", "record"];
+        var sysNames = ["loading", "intro", "mainMenu", "avatar", "sysMenu", 
+            "roleData", "goods", "record", "battle", "gameOver"];
         for(var i = 0; i < sysNames.length; i++){
             var name = sysNames[i];
             this.sys[name] = document.getElementById(name);
         }
 
-        var menuNames = ["menuRecord", "menuStart", "avatarImg", "toRoleData", "toGoods", "toRecord"];
+        var menuNames = ["menuRecord", "menuStart", "avatarImg", "toRoleData", 
+            "toGoods", "toRecord", "phyAttack", "escape"];
         for(var i = 0; i < menuNames.length; i++){
             var name = menuNames[i];
             var menu = document.getElementById(name);
@@ -186,6 +191,10 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         expDiv.style.width = basicAttr.EXP + "px";
         
 
+    };
+    System.prototype.updateAttrBar = function(div, value) {
+        console.log("updateAttrBar", div, value);
+        div.style.width = value + "px";
     };
 
 
@@ -372,6 +381,12 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
             case "toRecord":
                 this.showRecord("R");
                 break;
+            case "phyAttack":
+                this.app.battle.playerPhyAttck();
+                break;
+            case "escape":
+                this.app.battle.escape();
+                break;
            
         }
     };
@@ -387,6 +402,79 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         this.sys["intro"].style.backgroundPositionX = (prev - this.MOVE_INTRO_SPEED) + "%";
 
     };
+
+    //  in battle
+
+    System.prototype.startBattle = function(player, enemies) {
+
+        this.battleRoles = [].concat(player, enemies);
+        this.showRatingBar();
+    };
+
+
+    System.prototype.showRatingBar= function() {
+
+        this.sys["battle"].style.display = "block";
+
+        var ratingBar = this.sys["battle"].getElementsByClassName("ratingBar")[0]; 
+        ratingBar.style.width = this.RATINGBAR_WIDTH;
+
+        this.state = "battle";
+
+        // clear it
+        ratingBar.innerHTML = "";
+
+        for(var i = 0; i < this.battleRoles.length; i++){
+            var role = this.battleRoles[i];
+            var ratingDiv = document.createElement('div'); 
+            ratingDiv.className = "ratingDiv";
+            ratingDiv.innerHTML = "r" + i;
+            ratingBar.appendChild(ratingDiv);
+            role.setRatingData(ratingDiv);
+
+        }
+
+        this.app.battle.startRating();
+    };
+    System.prototype.hideRating = function() {
+        this.sys["battle"].style.display = "none";
+    };
+    System.prototype.removeDiv = function(ratingDiv) {
+        var ratingBar = this.sys["battle"].getElementsByClassName("ratingBar")[0]; 
+        ratingBar.removeChild(ratingDiv);
+    };
+    System.prototype.changeMargin = function(ratingDiv, percent) {
+
+        var marginLeft = percent/100 * this.RATINGBAR_WIDTH;
+        ratingDiv.style.marginLeft = marginLeft + "px";
+    };
+
+    System.prototype.showOperation = function(){
+        var operation = this.sys["battle"].getElementsByClassName("operation")[0];
+        operation.style.display = "block";
+    };
+    System.prototype.hideOperation = function(){
+        var operation = this.sys["battle"].getElementsByClassName("operation")[0];
+        operation.style.display = "none";
+    };
+
+    System.prototype.updatePlayerHP = function(damage) {
+        var basicAttr = this.gameData.playerAttr.basicAttr;
+        basicAttr.HP -= damage;
+        if(basicAttr.HP > 0){
+            console.log("updatePlayerHP", basicAttr.HP);
+            var hpDiv = this.sys["avatar"].getElementsByClassName("HP")[0];
+            this.updateAttrBar(hpDiv, basicAttr.HP);
+        }else{
+            this.gameOver();
+        }
+    };
+    System.prototype.gameOver = function() {
+        console.log("gameOver");
+        this.sys["gameOver"].style.display = "block";
+        this.app.changeMode("over");
+    };
+
 
     System.prototype.onkeydown = function(keyCode){
 

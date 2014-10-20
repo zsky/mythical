@@ -12,6 +12,8 @@ define(['lib/pixi'], function (PIXI) {
             console.log('image loaded');
         });
 
+        var strip = textureData.strip || { x: 0, y: 0};
+
         var baseTexture = image.texture.baseTexture;
         var imgWidth = textureData.imgWidth,
             imgHeight = textureData.imgHeight;
@@ -19,10 +21,10 @@ define(['lib/pixi'], function (PIXI) {
             for(var j = 0; j < textureData.frame_num; j++){
                 var action_name = textureData.actions[i];
                 PIXI.TextureCache[action_name+j] = new PIXI.Texture(baseTexture, {
-                                                   x: j*imgWidth,
-                                                   y: i*imgHeight,
-                                                   width: imgWidth,
-                                                   height: imgHeight
+                                                   x: j*imgWidth + strip.x,
+                                                   y: i*imgHeight + strip.y,
+                                                   width: imgWidth - strip.x,
+                                                   height: imgHeight - strip.y
                                                });
             }
         }
@@ -72,7 +74,7 @@ define(['lib/pixi'], function (PIXI) {
             case "stand":
                 action_name = "walk" + direction;
                 this.currAction = this.actions[action_name];
-                this.currAction.stop();
+                this.currAction.gotoAndStop(0);
                 break;
         }
 
@@ -80,6 +82,8 @@ define(['lib/pixi'], function (PIXI) {
         this.currAction.position.y = this.y;
         this.currAction.animationSpeed = this.animationSpeed;
         this.container.addChild(this.currAction);
+
+        //this.currAction.tint = Math.random() * 0xFFFFFF;
     };
     Anime.prototype.setPos = function(pos) {
         this.x = pos.x;
@@ -87,14 +91,6 @@ define(['lib/pixi'], function (PIXI) {
         this.actionChanged("stand", pos.dire);
     };
 
-
-
-    Anime.prototype.goWay = function(way) {
-
-        this.currWay = way;
-        this.actionChanged("walk", this.currWay.dire);
-
-    };
 
 
     Anime.prototype.updateWay = function() {
@@ -126,6 +122,10 @@ define(['lib/pixi'], function (PIXI) {
     				break;
 
     		}
+            if(this.currWay.offsetX) this.x += this.currWay.offsetX;
+            if(this.currWay.offsetY) this.y += this.currWay.offsetY;
+            
+
     		this.currAction.position.x = this.x;
     		this.currAction.position.y = this.y;
     	}
