@@ -185,7 +185,7 @@ define(['lib/pixi', 'utils', 'Anime'], function (PIXI, utils, Anime) {
                 var r = enemy.triggerRadius;
                 if(dx2 + dy2 < r * r){
                     console.log("haha i will kill you , into battle", enemy.battleData);
-                    this.scene.app.toBattle(enemy.battleData, enemy);
+                    this.scene.app.toBattle(enemy.battleData, i);
                     return;
                 }
             }

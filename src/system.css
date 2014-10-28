@@ -1,7 +1,9 @@
-body{
+html, body, ul, li{
     margin: 0;
     padding: 0;
     border: 0;
+}
+body{
     overflow: hidden;
     min-width: 400px;
     min-height: 300px;
@@ -53,81 +55,123 @@ body{
 #mainMenu{
     position: absolute;
     background-image: url(resource/system/mainMenu/bg.png);
-    background-size: 100% auto;
+    background-size: auto 100%; 
     width: 100%;
     height: 100%;
     display: none;
 }
+#menuLogo{
+    position: absolute;
+    left: 10%;
+    top: 8%;
+    width: 25%;
+}
 #menuRecord{
-    margin-left: 12%;
-    margin-top: 22%;
+    position: absolute;
+    left: 12%;
+    top: 32%;
+    width: 15%;
 }
-#menuRecord img{
-    width: 19%;
-}
+
 #menuStart{
-    margin-left: 12%;
-    margin-top: 6%;
+    position: absolute;
+    left: 12%;
+    top: 43%;
+    width: 15%;
 }
-#menuStart img{
-    width: 19%;
+
+#menuInfo{
+    position: absolute;
+    left: 12%;
+    top: 54%;
+    width: 15%;
 }
+
+#menuExit{
+    position: absolute;
+    left: 12%;
+    top: 65%;
+    width: 15%;
+}
+#menuIntro{
+    position: absolute;
+    left: 52%;
+    top: 21%;
+}
+
 
 #avatar{
     position: absolute;
     left: 0px;
     top: 2px;
-
     display: none;
 }
-#avatar img{
+#avatar .frame{
+    width: 210px;
+}
+#avatarImg{
     width: 80px;
     height: 80px;
+    position: absolute;
+    left: 18px;
+    top: 13px;
+}
+.rank{
+    color: #B35AC9;
+    position: absolute;
+    left: 88px;
+    top: 65px;
+
 }
 .HP{
-    height: 9px;
+    height: 6px;
     width: 9px;
-    background-color: #f00;
+    background-color: #EE4242;
+    position: absolute;
+    left: 93px;
+    top: 39px;
+    border-radius: 2px;
+
 }
 .MP{
-    height: 9px;
+    height: 6px;
     width: 9px;
-    background-color: #00f;
+    background-color: #3737EC;
+    position: absolute;
+    left: 93px;
+    top: 46px;
+    border-radius: 2px;
 }
 .EXP{
-    height: 9px;
+    height: 6px;
     width: 9px;
-    background-color: #0f0;
+    background-color: #42F742;
+    position: absolute;
+    left: 93px;
+    top: 53px;
+    border-radius: 2px;
 }
 
 #sysMenu{
     position: absolute;
-    background-image: url(resource/bg/bg_gray.jpg);
+    background-image: url(resource/system/sys_bg.png);
+    background-size: auto 100%;
     width: 100%;
     height: 100%;
     display: none;
 }
 #sysMenu #nav{
-    background-image: url(resource/bg/bg_yellow5.jpg);
     height: 100%;
     width: 15%;
     float: right;
-    font-size: 23px;
-    padding-left: 22px;
+    padding-right: 11%;
 
-}
-#sysMenu #nav div{
-    padding: 11px;
-    margin: 24px;
-    background-image: url(resource/bg/bg_yellow3.jpg);
-    color: #2E1D74;
-}
-#sysMenu #nav div:hover{
-    color: #9B1A39;
 }
 
 #roleData{
     position: absolute;
+    width: 75%;
+    height: 100%;
     display: none;
 }
 #roleData .roleInfo{
@@ -135,51 +179,77 @@ body{
   float: left;
 }
 #roleData .roleFigure{
-    margin-left: 110%;
+    position: absolute;
+    left: 34%;
+    top: 10%;
 }
 #goods{
     position: absolute;
+    width: 75%;
+    height: 100%;
     display: none;
 }
+#goods .desp{
+    background-image: url(resource/system/goods/desp.png);
+    background-size: 100% auto;
+    background-repeat: no-repeat;
+    width: 300px;
+    height: 90%;
+    position: absolute;
+    left: 55px;
+    top: 50px;
+}
 #goods .icon{
-    width: 70px;
-    height: 70px;
-    margin-left: 433px;
-    margin-top: 50px;
-    border:15px solid transparent;
-    border-image: url(resource/border/border1.jpg) 60 80;
+    width: 120px;
+    height: 120px;
+    margin-left: 90px;
+    margin-top: 90px;
+    border:1px solid #000;
 }
 #goods .detail{
-    width: 170px;
-    height: 170px;
-    margin-left: 381px;
-    margin-top: 50px;
-    border:18px solid transparent;
-    border-image: url(resource/border/border2.jpg) 40 40;
+    width: 210px;
+    height: 80px;
+    margin-left: 45px;
+    margin-top: 130px;
+    border:1px solid #000;
 }
 #goods .listDiv{
-    width: 170px;
-    height: 80%;
+    background-image: url(resource/system/goods/list.png);
+    background-size: 100% auto;
+    background-repeat: no-repeat;
+    width: 250px;
+    height: 90%;
     position: absolute;
-    left: 710px;
-    top: 40px;
+    left: 440px;
+    top: 45px;
+}
+#goods .list{
+    width: 188px;
+    height: 420px;
     overflow-x: hidden;
     overflow-y: auto;
-    border:18px solid transparent;
-    border-image: url(resource/border/border3.jpg) 40 40;
+    position: absolute;
+    left: 17px;
+    top: 30px;
+    padding: 10px;
 }
 #goods li{
   list-style-type: none;
-  border-top: 1px solid #8F9B8B;
-  padding: 3px;
+  background-image: url(resource/system/goods/item.png);
+  background-size: auto 100%; 
+  background-repeat: no-repeat;
+  height: 30px;
+  padding-top: 12px;
 }
 #goods li.head{
   font-size: 16px;
   font-weight: bold;
 }
 #goods li span{
-  margin-right: 19px;
-  padding: 3px;
+  margin-right: 16px;
+  margin-left: 6px;
+  display: inline-block;
+  width: 33px;
 }
 #record{
     position: absolute;
@@ -263,6 +333,8 @@ body{
 
 #gameOver{
     background-image: url(resource/system/gameover.jpg);
+    width: 100%;
+    height: 100%;
     position: absolute;
     display: none;
 }

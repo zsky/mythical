@@ -91,9 +91,10 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
 
         console.log("data loaded, TextureCache", PIXI.TextureCache);
 
-        this.app.system.hideLoading(function(){
-            console.log("callback do nothing");
-        });
+        /*this.app.system.hideLoading(function(){
+            //console.log("callback do nothing");
+        });*/
+        this.app.system.hideLoading();
         this.enter();  // enter the scene
 
     };
@@ -177,16 +178,12 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
     Scene.prototype.getEnemies = function() {
         return this.enemies;
     };
-    Scene.prototype.removeEnemy = function(enemy) {
-        console.info("scene removeEnemy", enemy, "this.enemies", this.enemies, "equal?", enemy === this.enemies[0]);
-        for(var i = this.enemies.length - 1; i > 0; i--){
-            var e = this.enemies[i];
-            if(e === enemy) {
-                this.enemies.splice(i, 1);
-                if(this.enemies.length < 1) console.log("enemies are all dead");
-                return;
-            }
-        }
+    Scene.prototype.removeEnemy = function(enemyIndex) {
+        console.log("scene.js removeEnemy", enemyIndex);
+        var enemyAction = this.enemies[enemyIndex].currAction;
+        if(enemyAction) enemyAction.parent.removeChild(enemyAction);
+        this.enemies.splice(enemyIndex, 1);
+        if(this.enemies.length < 1) console.log("enemies are all dead");
     };
 
     Scene.prototype.toBattle = function(battleData) {

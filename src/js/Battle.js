@@ -53,9 +53,9 @@ define(['lib/pixi', 'Anime', 'Enemy'], function (PIXI, Anime, Enemy) {
 
     };
 
-    Battle.prototype.enter = function(data, origEnemy) {
+    Battle.prototype.enter = function(data, enemyIndex) {
         console.log("enter battle", data);
-        this.origEnemy = origEnemy;
+        this.enemyIndex = enemyIndex;
         this.container.visible = true;
         this.clear();
         this.enemyData = data.enemies;
@@ -221,7 +221,7 @@ define(['lib/pixi', 'Anime', 'Enemy'], function (PIXI, Anime, Enemy) {
         console.log("battle over", this.gains);
         this.battleRoles = [];
         this.app.scene.player.stepBack(45);
-        this.app.scene.removeEnemy(this.origEnemy);
+        this.app.scene.removeEnemy(this.enemyIndex);
         this.app.system.hideRating();
         this.finishAttack();
         var index = Math.floor(Math.random()*this.gains.length);

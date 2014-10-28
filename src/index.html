@@ -12,39 +12,18 @@
 
 
     <div id="mainMenu">
-        <div id="menuRecord">
-            <img src="resource/system/mainMenu/menuArchive.png"/>
-        </div>
-        <div id="menuStart">
-            <img src="resource/system/mainMenu/menuStart.png"/>
-        </div>
+        <img id="menuLogo" src="resource/system/mainMenu/logo.png"/>
+        <img id="menuRecord" src="resource/system/mainMenu/menuArchive.png"/>
+        <img id="menuStart" src="resource/system/mainMenu/menuStart.png"/>
+        <img id="menuInfo" src="resource/system/mainMenu/menuInfo.png"/>
+        <img id="menuExit" src="resource/system/mainMenu/menuExit.png"/>
+        <img id="menuIntro" src="resource/system/mainMenu/intro.png"/>
     </div>
 
-    <div id="avatar">
-        <img id="avatarImg" src="resource/avatar/qiangu.png"/>
-        <div> rank: <span class="rank"> 0</span> </div>
-        <div class="HP"></div>
-        <div class="MP"></div>
-        <div class="EXP"></div>
-    </div>
 
     <div id="sysMenu">
-        <div id="nav">
-            <h3> Nav Menu </h3>
-            <div>coin: <span class="coin"></span></div>
-            <div id="toRoleData"> 人物 </div>
-            <div id="toGoods"> 物品 </div>
-            <div id="toEquip"> 装备 </div>
-            <div id="toSkill"> Skill </div>
-            <div id="toRecord"> Record </div>
-        </div>
         <div id="roleData">
             <div class="roleInfo">
-                <img src="resource/avatar/qiangu.png"/>
-                <div> rank: <span class="rank"> 0</span> </div>
-                <div class="HP"></div>
-                <div class="MP"></div>
-                <div class="EXP"></div>
             </div>
             <div class="roleFigure">
                 <img class="figure" src="resource/system/roleData/qiangu.png"/>
@@ -52,15 +31,41 @@
 
         </div>
         <div id="goods">
-            <img class="icon" src=""/>
-            <div class="detail"></div>
+            <div class="desp">
+                <img class="icon" src=""/>
+                <div class="detail"></div>
+            </div>
             <div class="listDiv">
                 <ul class="list">
-                    <li class="head"> <span> name </span> <span> number </span> </li>
+                    <li class='head'> <span> 名字 </span> <span> 数量</span> <span> 使用 </span> </li>
+
+                    <li class="goodsItem"> <span> xxx </span> <span> 3 </span> <span> Use </span> </li>
+                    <li class="goodsItem"> <span> xxx </span> <span> 3 </span> <span> Use </span> </li>
+                    <li class="goodsItem"> <span> xxx </span> <span> 3 </span> <span> Use </span> </li>
+                    <li class="goodsItem"> <span> xxx </span> <span> 3 </span> <span> Use </span> </li>
 
                 </ul>
             </div>
         </div>
+
+        
+        <div id="nav">
+            <div>coin: <span class="coin"></span></div>
+            <div > <img id="toRoleData" src="resource/system/nav/role.png"/> </div>
+            <div > <img id="toGoods" src="resource/system/nav/goods.png"/> </div>
+            <div > <img id="toEquip" src="resource/system/nav/equip.png"/> </div>
+            <div > <img id="toSkill" src="resource/system/nav/skill.png"/> </div>
+            <div > <img id="toRecord" src="resource/system/nav/record.png"/> </div>
+        </div>
+    </div>
+
+    <div id="avatar">
+        <img class="frame" src="resource/avatar/frame.png"/>
+        <img id="avatarImg" src="resource/avatar/qiangu.png"/>
+        <div class="rank">0</div>
+        <div class="HP"></div>
+        <div class="MP"></div>
+        <div class="EXP"></div>
     </div>
 
     <div id="record">

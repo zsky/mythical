@@ -148,7 +148,7 @@ define(['lib/pixi'], function (PIXI) {
             
         }
 
-        container.addChild(g);
+        //container.addChild(g);
 
     };
 

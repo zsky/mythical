@@ -5,7 +5,8 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
     var System = function(app){
 
         this.app = app;
-        this.sys = [];
+        this.sys = {};
+        this.menus = {};
 
         this.init();
 
@@ -13,6 +14,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         this.MOVE_INTRO_SPEED = 0.04;
         this.RECORD_NUM = 10;
         this.RATINGBAR_WIDTH = 200;
+        this.BAR_WIDTH = 97;
 
         this.defaultData = {
             
@@ -22,7 +24,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
                 vX: 1.5,
                 vY: 1.5,
                 dire: "U",
-                mapName: "road",
+                mapName: "start",
                 textureData: {
                     path: "resource/role/qiangu.png",
                     actions: ["walkD", "walkL", "walkR", "walkU"],
@@ -35,9 +37,9 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
             playerAttr: {
                 basicAttr: {
                     coin: 33,
-                    HP: 100,
+                    HP: 80,
                     HP_MAX: 120,
-                    MP: 100,
+                    MP: 70,
                     MP_MAX: 120,
                     EXP: 20,
                     EXP_MAP: 30,
@@ -83,8 +85,8 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
             "toGoods", "toRecord", "phyAttack", "escape"];
         for(var i = 0; i < menuNames.length; i++){
             var name = menuNames[i];
-            var menu = document.getElementById(name);
-            menu.addEventListener("click", this.bindEvent(name), false);
+            this.menus[name] = document.getElementById(name);
+            this.menus[name].addEventListener("click", this.bindEvent(name), false);
         }
 
     };
@@ -117,8 +119,12 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         this.state = "";       
     };
 
-    System.prototype.showAvatar = function() {
+    System.prototype.showAvatar = function(pos) {
         this.sys["avatar"].style.display = "block";
+
+        if(!pos) pos = {x: 0, y: 0};
+        this.sys["avatar"].style.left = pos.x + 'px';
+        this.sys["avatar"].style.top = pos.y + 'px';
 
         this.sys["record"].style.display = "none";
         var basicAttr = this.gameData.playerAttr.basicAttr;
@@ -171,24 +177,31 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         var coinSpan = this.sys["sysMenu"].getElementsByClassName("coin")[0];
         coinSpan.innerHTML = basicAttr.coin;       
         // default
-        this.showRoleData();
+        //this.showRoleData();
+        this.showGoods();
     };
 
     System.prototype.showRoleData = function() {
-        if(this.currLayer) { this.currLayer.style.display = "none"; }
-        this.sys["roleData"].style.display = "block";
+        console.log("System showRoleData");
+
+        if(this.currLayer) {  console.log("cao", this.currLayer);  this.currLayer.style.display = "none"; }
         this.currLayer = this.sys["roleData"];
+        console.log("this.currLayer", this.currLayer);
+        this.sys["roleData"].style.display = "block";
 
-        var basicAttr = this.gameData.playerAttr.basicAttr;
-        var rankSpan = this.sys["roleData"].getElementsByClassName("rank")[0];
-        rankSpan.innerHTML = basicAttr.rank;
-        var hpDiv = this.sys["roleData"].getElementsByClassName("HP")[0];
-        var mpDiv = this.sys["roleData"].getElementsByClassName("MP")[0];
-        var expDiv = this.sys["roleData"].getElementsByClassName("EXP")[0];
+        if(this.currMenu) { 
+            var img = this.currMenu.src.slice(0, -12) + this.currMenu.src.slice(-4);
+            this.currMenu.src = img;
+        }
+        this.currMenu = this.menus["toRoleData"];
+        var selectedImg = this.currMenu.src.slice(0, -4) + "Selected" + this.currMenu.src.slice(-4);
+        this.currMenu.src = selectedImg;
 
-        hpDiv.style.width = basicAttr.HP + "px";
-        mpDiv.style.width = basicAttr.MP + "px";
-        expDiv.style.width = basicAttr.EXP + "px";
+        var pos = {
+            x: 32,
+            y: 54
+        }
+        this.showAvatar(pos);
         
 
     };
@@ -204,6 +217,14 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         this.sys["goods"].style.display = "block";
         this.currLayer = this.sys["goods"];
 
+        if(this.currMenu) { 
+            var img = this.currMenu.src.slice(0, -12) + this.currMenu.src.slice(-4);
+            this.currMenu.src = img;
+        }
+        this.currMenu = this.menus["toGoods"];
+        var selectedImg = this.currMenu.src.slice(0, -4) + "Selected" + this.currMenu.src.slice(-4);
+        this.currMenu.src = selectedImg;
+
         if(!this.sys["goods"].dataset.updated){
             console.log("showGoods updated");
             var iconImg = this.sys["goods"].getElementsByClassName("icon")[0];
@@ -211,7 +232,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
             var goodsList = this.sys["goods"].getElementsByClassName("list")[0];
 
             console.log("detailsJson", this.detailsJson);
-            goodsList.innerHTML = "<li class='head'> <span> name </span> <span> number </span> </li>";
+            //goodsList.innerHTML = "<li class='head'> <span> 名字 </span> <span> 数量</span> <span> 使用 </span> </li>";
 
             var goodsData = this.gameData.common.goods;
             for(var k  in goodsData){
@@ -220,7 +241,8 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
                 var element = document.createElement('li');
                 element.className = "goodsItem";
                 element.addEventListener("click", this.showItem(detailDiv, iconImg, detail), false);
-                element.innerHTML = "<span>" + detail.name + "</span>" + "<span>" + data.num + "</span>";
+                element.innerHTML = "<span>" + detail.name + "</span><span>" + data.num + "</span><span> Use </span>";
+
                 goodsList.appendChild(element);
             }
 
@@ -328,7 +350,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
 
             switch(stuff[0]){
                 case "coin":
-                    this.gameData.playerAttr.coin += stuff[2];
+                    this.gameData.playerAttr.basicAttr.coin += stuff[2];
                     break;
                 case "goods":
                     if(this.gameData.common.goods[stuff[1]]){

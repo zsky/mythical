@@ -140,13 +140,18 @@ define(['Scene', 'System', 'Battle', 'lib/pixi'], function (Scene, System, Battl
 
         this.system.gameData = data;
 
-        this.system.showAvatar();
+        //this.system.showAvatar();
+
+        // Just for test
+        this.changeMode("system");
+        this.system.showSysMenu();
+
     };
 
-    App.prototype.toBattle = function(battleData, origEnemy) {
+    App.prototype.toBattle = function(battleData, enemyIndex) {
         this.changeMode("battle");
         //this.system.hideAvatar();
-        this.battle.enter(battleData, origEnemy);
+        this.battle.enter(battleData, enemyIndex);
     };
 
 
