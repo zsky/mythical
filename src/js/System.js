@@ -31,7 +31,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
                     imgWidth: 100,
                     imgHeight: 100,
                     frame_num: 4,
-                    ratio: 0.5
+                    ratio: 0.6
                 }
             },
             playerAttr: {
@@ -115,6 +115,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
 
     System.prototype.showIntro = function() {
         console.log("system showIntro");
+        this.app.audio.playBgm("intro");
         this.state = "intro";
         this.sys["intro"].style.display = "block";
         this.sys["intro"].style.backgroundPositionX = "100%";
@@ -167,6 +168,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
 
     System.prototype.showMainMenu = function() {
         this.state = "mainMenu";
+        this.app.audio.playBgm("menu");
 
         this.sys["mainMenu"].style.display = "block";
 
@@ -193,6 +195,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
     System.prototype.showSysMenu = function() {
 
         this.state = "sysMenu";
+        this.app.audio.playBgm("menu");
         this.sys["sysMenu"].style.display = "block";
         var basicAttr = this.gameData.playerAttr.basicAttr;
       
@@ -378,6 +381,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         return function(){
             console.log("useItem", data, detail, goodsNum);
             if(data.num < 1) return;
+            this.app.audio.playEffect("useIt");
             var goodsList = this.sys["goods"].getElementsByClassName("list")[0];
             switch(detail.effect.type){
                 case "HP":
@@ -470,6 +474,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
     System.prototype.recordEvent = function(i) {
         return function(){
             console.log("recordEventtt", this.sys["record"].dataset);
+            this.app.audio.playEffect("clickRecord");
             if(this.sys["record"].dataset.authority === "W"){
                 this.writeRecord(i);
             }else{
@@ -536,6 +541,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
     System.prototype.bindEvent = function(command){
         var that = this;
         return function(){
+            that.app.audio.playEffect("clickMenu");
             that.execCommand(command);
         }
 

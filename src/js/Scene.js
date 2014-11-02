@@ -125,6 +125,7 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
 
     Scene.prototype.enter = function(){
         console.log("enter scene");
+        this.app.audio.playBgm("main");
 
         this.map.drawAll(this.name, this.mapData);
 
@@ -188,6 +189,7 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
 
     Scene.prototype.toBattle = function(battleData) {
         this.mode = "battle";
+        this.app.audio.playBgm("fight");
         this.tempPos = {
             x: this.container.x,
             y: this.container.y

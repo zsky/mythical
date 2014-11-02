@@ -1,4 +1,4 @@
-define(['Scene', 'System', 'Battle', 'lib/pixi'], function (Scene, System, Battle, PIXI) {
+define(['Scene', 'System', 'Battle', 'Audio', 'lib/pixi'], function (Scene, System, Battle, Audio, PIXI) {
 
     var App = function(){
 
@@ -23,6 +23,7 @@ define(['Scene', 'System', 'Battle', 'lib/pixi'], function (Scene, System, Battl
         this.battle = new Battle(this.battleContainer, this);
 
         this.system = new System(this);
+        this.audio = new Audio();
 
         this.stage.addChild(this.sceneContainer);
         this.stage.addChild(this.battleContainer);
@@ -62,8 +63,8 @@ define(['Scene', 'System', 'Battle', 'lib/pixi'], function (Scene, System, Battl
         this.battle.setEnemiesJson(data.content.json);
 
         this.system.hideLoading(function(){
-             //this.showIntro();  // exec in system.js, not change mode
-             this.app.startGame(this.defaultData);  
+             this.showIntro();  // exec in system.js, not change mode
+             //this.app.startGame(this.defaultData);  
         });
 
     };
@@ -133,18 +134,18 @@ define(['Scene', 'System', 'Battle', 'lib/pixi'], function (Scene, System, Battl
 
         var dispData = data.playerDisp;
 
-        //this.scene.goToMap(dispData.mapName);
+        this.scene.goToMap(dispData.mapName);
         this.scene.player.initPlayer(dispData);
 
         this.changeMode("normal");
 
         this.system.gameData = data;
 
-        //this.system.showAvatar();
+        this.system.showAvatar();
 
         // Just for test
-        this.changeMode("system");
-        this.system.showSysMenu();
+        //this.changeMode("system");
+        //this.system.showSysMenu();
 
     };
 

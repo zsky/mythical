@@ -148,6 +148,7 @@ define(['lib/pixi', 'Anime', 'Enemy'], function (PIXI, Anime, Enemy) {
     };
 
     Battle.prototype.showDamage = function(damage, target) {
+        this.app.audio.playEffect("attack");
         var that = this;
         var text = new PIXI.Text("-" + damage, { font: "85px Snippet", fill: "red", align: "left" });
         text.position.x = target.x;
