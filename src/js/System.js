@@ -37,12 +37,12 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
             playerAttr: {
                 basicAttr: {
                     coin: 33,
-                    HP: 80,
+                    HP: 100,
                     HP_MAX: 120,
-                    MP: 70,
+                    MP: 60,
                     MP_MAX: 120,
                     EXP: 20,
-                    EXP_MAP: 30,
+                    EXP_MAX: 30,
                     rank: 1,
                     avatar: "resource/avatar/qiangu.jpg",
                     figure: "resource/avatar/qiangu.jpg"
@@ -55,14 +55,22 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
                 },
                 skills: {
                     "gold0": { rank: 1 }
-                }
+                },
+                usedEquip: [
+                    {type: "weapon", name: "WEAPON1"},
+                    {type: "armor", name: ""},
+                    {type: "bracelet", name: ""},
+                    {type: "shoe", name: ""}
+                ]
             },
             common: {
                 goods: {
-                    "HP1": { num: 2 }
+                    "HP1": { num: 2 },
+                    "MP1": { num: 1 }
                 },
-                equipment: {
-                    "armor1": { num: 1, used: true, usedFor: "qiangu" }
+                equip: {
+                    "ARMOR1": { num: 1 },
+                    "WEAPON1": { num: 1 }
                 },
                 task: "task1"
             }
@@ -75,14 +83,14 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
     System.prototype.init = function() {
 
         var sysNames = ["loading", "intro", "mainMenu", "avatar", "sysMenu", 
-            "roleData", "goods", "record", "battle", "gameOver"];
+            "roleData", "goods", "equip", "record", "battle", "gameOver"];
         for(var i = 0; i < sysNames.length; i++){
             var name = sysNames[i];
             this.sys[name] = document.getElementById(name);
         }
 
         var menuNames = ["menuRecord", "menuStart", "avatarImg", "toRoleData", 
-            "toGoods", "toRecord", "phyAttack", "escape"];
+            "toGoods", "toEquip", "toRecord", "phyAttack", "escape"];
         for(var i = 0; i < menuNames.length; i++){
             var name = menuNames[i];
             this.menus[name] = document.getElementById(name);
@@ -130,16 +138,29 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         var basicAttr = this.gameData.playerAttr.basicAttr;
         var rankSpan = this.sys["avatar"].getElementsByClassName("rank")[0];
         rankSpan.innerHTML = basicAttr.rank;
-        var hpDiv = this.sys["avatar"].getElementsByClassName("HP")[0];
-        var mpDiv = this.sys["avatar"].getElementsByClassName("MP")[0];
-        var expDiv = this.sys["avatar"].getElementsByClassName("EXP")[0];
+        var coinSpan = this.sys["avatar"].getElementsByClassName("coin")[0];
+        coinSpan.innerHTML = basicAttr.coin; 
 
-        hpDiv.style.width = basicAttr.HP + "px";
-        mpDiv.style.width = basicAttr.MP + "px";
-        expDiv.style.width = basicAttr.EXP + "px";
+        this.updateAttrBar("HP", 0);
+        this.updateAttrBar("MP", 0);
+        this.updateAttrBar("EXP", 0);
 
         
     };
+
+    // type: HP, MP, EXP
+    System.prototype.updateAttrBar = function(type, changeValue) {
+        var basicAttr = this.gameData.playerAttr.basicAttr;
+        var div = this.sys["avatar"].querySelector("." + type);
+        if(basicAttr[type] + changeValue > basicAttr[type + "_MAX"]){
+            basicAttr[type] = basicAttr[type + "_MAX"];
+        }else{
+            basicAttr[type] += changeValue;
+        }
+        var percent = basicAttr[type] / basicAttr[type + "_MAX"];
+        div.style.width = percent * this.BAR_WIDTH + "px";
+    };
+
     System.prototype.hideAvatar = function() {
         this.sys["avatar"].style.display = "none";
     };
@@ -174,11 +195,11 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         this.state = "sysMenu";
         this.sys["sysMenu"].style.display = "block";
         var basicAttr = this.gameData.playerAttr.basicAttr;
-        var coinSpan = this.sys["sysMenu"].getElementsByClassName("coin")[0];
-        coinSpan.innerHTML = basicAttr.coin;       
+      
         // default
-        //this.showRoleData();
-        this.showGoods();
+        this.showRoleData();
+        //this.showGoods();
+        //this.showEquip();
     };
 
     System.prototype.showRoleData = function() {
@@ -202,17 +223,23 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
             y: 54
         }
         this.showAvatar(pos);
-        
+        var battleAttr = this.gameData.playerAttr.battleAttr;
+        var atkSpan = this.sys["roleData"].querySelector(".attrATK");
+        var defSpan = this.sys["roleData"].querySelector(".attrDEF");
+        var rateSpan = this.sys["roleData"].querySelector(".attrRate");
+        var luckSpan = this.sys["roleData"].querySelector(".attrLuck");
+        atkSpan.innerHTML = battleAttr.ATK;
+        defSpan.innerHTML = battleAttr.DEF;
+        rateSpan.innerHTML = battleAttr.rate;
+        luckSpan.innerHTML = battleAttr.luck;
 
-    };
-    System.prototype.updateAttrBar = function(div, value) {
-        console.log("updateAttrBar", div, value);
-        div.style.width = value + "px";
+
     };
 
 
 
     System.prototype.showGoods = function() {
+        this.hideAvatar();
         if(this.currLayer){ this.currLayer.style.display = "none"; }
         this.sys["goods"].style.display = "block";
         this.currLayer = this.sys["goods"];
@@ -232,7 +259,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
             var goodsList = this.sys["goods"].getElementsByClassName("list")[0];
 
             console.log("detailsJson", this.detailsJson);
-            //goodsList.innerHTML = "<li class='head'> <span> 名字 </span> <span> 数量</span> <span> 使用 </span> </li>";
+            goodsList.innerHTML = "<li class='head'> <span> 名字 </span> <span> 数量 </span> <span> 使用 </span> </li>";
 
             var goodsData = this.gameData.common.goods;
             for(var k  in goodsData){
@@ -240,8 +267,19 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
                 var detail = this.detailsJson.goods[k];
                 var element = document.createElement('li');
                 element.className = "goodsItem";
-                element.addEventListener("click", this.showItem(detailDiv, iconImg, detail), false);
-                element.innerHTML = "<span>" + detail.name + "</span><span>" + data.num + "</span><span> Use </span>";
+
+                var goodsName = document.createElement('span');
+                goodsName.innerHTML = detail.name;
+                goodsName.addEventListener("click", this.showItem(detailDiv, iconImg, detail, "goods").bind(this), false);
+                var goodsNum = document.createElement('span');
+                goodsNum.innerHTML = data.num;
+                var useGoods = document.createElement('span');
+                useGoods.innerHTML = "Use";
+                useGoods.addEventListener("click", this.useItem(data, detail, goodsNum, element).bind(this), false);
+
+                element.appendChild(goodsName);
+                element.appendChild(goodsNum);
+                element.appendChild(useGoods);
 
                 goodsList.appendChild(element);
             }
@@ -249,12 +287,129 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
             this.sys["goods"].dataset.updated = "updated";
         }
 
-        
     };
-    System.prototype.showItem = function(detailDiv, iconImg, detail) {
+
+
+    System.prototype.showEquip = function() {
+        this.hideAvatar();
+        if(this.currLayer){ this.currLayer.style.display = "none"; }
+        this.sys["equip"].style.display = "block";
+        this.currLayer = this.sys["equip"];
+
+        if(this.currMenu) { 
+            var img = this.currMenu.src.slice(0, -12) + this.currMenu.src.slice(-4);
+            this.currMenu.src = img;
+        }
+        this.currMenu = this.menus["toEquip"];
+        var selectedImg = this.currMenu.src.slice(0, -4) + "Selected" + this.currMenu.src.slice(-4);
+        this.currMenu.src = selectedImg;
+
+        if(!this.sys["equip"].dataset.updated){
+            var iconImg = this.sys["equip"].getElementsByClassName("icon")[0];
+            var detailDiv = this.sys["equip"].getElementsByClassName("detail")[0];
+            var equipList = this.sys["equip"].getElementsByClassName("list")[0];
+
+            console.log("show equip detailsJson", this.detailsJson);
+            equipList.innerHTML = "<li class='head'> <span> 名字 </span> <span> 数量 </span> <span> 使用 </span> </li>";
+
+            var equipData = this.gameData.common.equip;
+            for(var k  in equipData){
+                var data = equipData[k];
+                var detail = this.detailsJson.equip[k];
+                var element = document.createElement('li');
+                element.className = "equipItem";
+
+                var equipName = document.createElement('span');
+                equipName.innerHTML = detail.name;
+                equipName.addEventListener("click", this.showItem(detailDiv, iconImg, detail, "equip").bind(this), false);
+                var equipNum = document.createElement('span');
+                equipNum.innerHTML = data.num;
+                var useEquip = document.createElement('span');
+                useEquip.innerHTML = "Use";
+                useEquip.addEventListener("click", this.useItem(data, detail, equipNum, element).bind(this), false);
+
+                element.appendChild(equipName);
+                element.appendChild(equipNum);
+                element.appendChild(useEquip);
+
+                equipList.appendChild(element);
+            }
+
+            var divs = {
+                weapon: this.sys["equip"].querySelector(".equipWeapon"),
+                armor: this.sys["equip"].querySelector(".equipArmor"),
+                bracelet: this.sys["equip"].querySelector(".equipBracelet"),
+                shoe: this.sys["equip"].querySelector(".equipShoe")
+            }
+
+            var usedEquip = this.gameData.playerAttr.usedEquip;
+            for(var i = 0; i < usedEquip.length; i++){
+                var e = usedEquip[i];
+                var dispName;
+                if(e.name){
+                    dispName = this.detailsJson.equip[e.name].name;
+                }else{
+                    dispName = "None";
+                }
+                divs[e.type].innerHTML = dispName;
+            }
+
+
+
+
+            this.sys["equip"].dataset.updated = "updated";
+        }
+
+    };
+
+    System.prototype.showItem = function(detailDiv, iconImg, detail, type) {
         return function(){
             detailDiv.innerHTML = detail.describe;
-            iconImg.src = "resource/system/goods/" + detail.icon;
+            if(type === "goods"){
+                iconImg.src = "resource/goods/" + detail.icon;
+            }else{
+                iconImg.src = "resource/equip/" + detail.icon;
+            }
+            
+        }
+    };
+
+    System.prototype.useItem = function(data, detail, goodsNum, element) {
+        return function(){
+            console.log("useItem", data, detail, goodsNum);
+            if(data.num < 1) return;
+            var goodsList = this.sys["goods"].getElementsByClassName("list")[0];
+            switch(detail.effect.type){
+                case "HP":
+                    this.updateAttrBar("HP", detail.effect.value);
+
+                    data.num -= 1;
+                    goodsNum.innerHTML = data.num;
+                    if(data.num === 0){
+                        goodsList.removeChild(element);
+                    }
+                    break;
+                case "MP":
+                    this.updateAttrBar("MP", detail.effect.value);
+
+                    data.num -= 1;
+                    goodsNum.innerHTML = data.num;
+                    if(data.num === 0){
+                        goodsList.removeChild(element);
+                    }
+                    break;
+                case "ATK":
+                    console.log('add atk', data, detail);
+                    var usedEquip = this.gameData.playerAttr.usedEquip;
+                    if(detail.type === "weapon"){
+                        if(usedEquip[0].name){
+                            
+
+                        }
+                    }
+                    break;
+
+            }
         }
     };
 
@@ -263,7 +418,15 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         this.sys["sysMenu"].style.display = "none";
         this.sys["record"].style.display = "block";
 
-        this.state = "record";
+        var readIcon = this.sys["record"].querySelector(".readIcon");
+        var writeIcon = this.sys["record"].querySelector(".writeIcon");
+        if(authority == "R"){
+            readIcon.src = "resource/system/record/read.png";
+            writeIcon.src = "resource/system/record/writeGray.png";
+        }else if(authority == "W"){
+            readIcon.src = "resource/system/record/readGray.png";
+            writeIcon.src = "resource/system/record/write.png";
+        }
 
         var recordList = this.sys["record"].getElementsByClassName("list")[0];
 
@@ -276,10 +439,10 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
                 element.className = "recordItem";
                 element.id = "record" + i;
                 recordList.appendChild(element);
-                var span = document.createElement('span'); 
-                span.className = "recordNum";
-                span.innerHTML = i;
-                element.appendChild(span);
+                var num = document.createElement('div'); 
+                num.className = "recordNum";
+                num.innerHTML = i;
+                element.appendChild(num);
 
                 var mapName = document.createElement('div'); 
                 mapName.className = "recordMapName";
@@ -306,6 +469,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
     };
     System.prototype.recordEvent = function(i) {
         return function(){
+            console.log("recordEventtt", this.sys["record"].dataset);
             if(this.sys["record"].dataset.authority === "W"){
                 this.writeRecord(i);
             }else{
@@ -400,7 +564,11 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
             case "toGoods":
                 this.showGoods();
                 break;
+            case "toEquip":
+                this.showEquip();
+                break;
             case "toRecord":
+                this.state = "sysRecord";
                 this.showRecord("R");
                 break;
             case "phyAttack":
@@ -486,7 +654,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
         if(basicAttr.HP > 0){
             console.log("updatePlayerHP", basicAttr.HP);
             var hpDiv = this.sys["avatar"].getElementsByClassName("HP")[0];
-            this.updateAttrBar(hpDiv, basicAttr.HP);
+            this.updateAttrBar("HP", -damage);
         }else{
             this.gameOver();
         }
@@ -499,25 +667,28 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
 
 
     System.prototype.onkeydown = function(keyCode){
-
         switch(keyCode){
             case 27:
+                console.log("this.state", this.state);
                 if(this.state === "intro"){
                     this.hideIntro();
                 }else if(this.state === "sysMenu"){
                     this.sys["sysMenu"].style.display = "none";
                     this.showAvatar();
-                    this.app.mode = "normal";
+                    this.app.changeMode("normal"); 
                     this.state = ""; 
-                }else if(this.state === "record"){
+                }else if(this.state === "sysRecord"){
                     this.sys["record"].style.display = "none";
-                    this.showAvatar();
-                    this.app.mode = "normal";
+                    this.sys["sysMenu"].style.display = "block";
                     this.state = "";
                }else if(this.state === "readRecord"){
                    this.sys["record"].style.display = "none";
                    this.sys["mainMenu"].style.display = "block";
                    this.state = "";         
+               }else if(this.state === "writeRecord"){   
+                   this.sys["record"].style.display = "none";
+                   this.showAvatar();
+                   this.app.changeMode("normal"); 
                }
         }
 

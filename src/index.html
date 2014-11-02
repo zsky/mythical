@@ -24,6 +24,10 @@
     <div id="sysMenu">
         <div id="roleData">
             <div class="roleInfo">
+                <div> ATK: <span class="attrATK"> 0 </span> </div>
+                <div> DEF: <span class="attrDEF"> 0 </span> </div>
+                <div> rate <span class="attrRate"> 0 </span> </div>
+                <div> luck: <span class="attrLuck"> 0 </span> </div>
             </div>
             <div class="roleFigure">
                 <img class="figure" src="resource/system/roleData/qiangu.png"/>
@@ -48,9 +52,32 @@
             </div>
         </div>
 
+        <div id="equip">
+            <div class="desp">
+                <img class="icon" src=""/>
+                <div class="detail"></div>
+            </div>
+            <div class="listDiv">
+                <ul class="list">
+                    <li class='head'> <span> 名字 </span> <span> 数量</span> <span> 使用 </span> </li>
+
+                    <li class="equipItem"> <span> xxx </span> <span> 3 </span> <span> Use </span> </li>
+                    <li class="equipItem"> <span> xxx </span> <span> 3 </span> <span> Use </span> </li>
+                    <li class="equipItem"> <span> xxx </span> <span> 3 </span> <span> Use </span> </li>
+                    <li class="equipItem"> <span> xxx </span> <span> 3 </span> <span> Use </span> </li>
+
+                </ul>
+            </div>
+            <div class="usedEquip">
+                <div> weapon: <span class="equipWeapon"> </span> </div>
+                <div> armor: <span class="equipArmor"> </span> </div>
+                <div> bracelet: <span class="equipBracelet"> </span> </div>
+                <div> shoe: <span class="equipShoe"> </span> </div>
+            </div>
+        </div>
+
         
         <div id="nav">
-            <div>coin: <span class="coin"></span></div>
             <div > <img id="toRoleData" src="resource/system/nav/role.png"/> </div>
             <div > <img id="toGoods" src="resource/system/nav/goods.png"/> </div>
             <div > <img id="toEquip" src="resource/system/nav/equip.png"/> </div>
@@ -63,13 +90,18 @@
         <img class="frame" src="resource/avatar/frame.png"/>
         <img id="avatarImg" src="resource/avatar/qiangu.png"/>
         <div class="rank">0</div>
+        <div class="coin">0</div>
         <div class="HP"></div>
         <div class="MP"></div>
         <div class="EXP"></div>
     </div>
 
     <div id="record">
-        <div class="head">  <span> read </span> <span> write </span> </div>
+        <div class="head"> 
+            <img class="readIcon" src="resource/system/record/read.png"/>
+            <img class="writeIcon" src="resource/system/record/write.png"/>
+        </div>
+        <img class="frame" src="resource/system/record/frame.png"/>
         <div class="list">
         </div>
     </div>

@@ -133,7 +133,7 @@ define(['Scene', 'System', 'Battle', 'lib/pixi'], function (Scene, System, Battl
 
         var dispData = data.playerDisp;
 
-        this.scene.goToMap(dispData.mapName);
+        //this.scene.goToMap(dispData.mapName);
         this.scene.player.initPlayer(dispData);
 
         this.changeMode("normal");
