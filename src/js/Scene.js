@@ -330,11 +330,13 @@ define(['lib/pixi', 'Map', 'Role', "Enemy", "Battle"], function (PIXI, Map, Role
         }
         if(keyCode === 112){
             this.app.system.showRecord("R");
-            this.app.mode = "system";
+            this.app.system.state = "readRecord";
+            this.app.changeMode("system");
         }
         if(keyCode === 113){
             this.app.system.showRecord("W");
-            this.app.mode = "system";
+            this.app.system.state = "writeRecord";
+            this.app.changeMode("system");
         }
 
         console.log("scene onkeydown");

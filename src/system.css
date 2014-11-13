@@ -183,6 +183,7 @@ body{
     position: absolute;
     left: 71px;
     top: 232px;
+    display: none;
 }
 #roleData .roleFigure{
     position: absolute;
@@ -363,9 +364,9 @@ li span{
     margin-top: 3%;
 }
 #battle .operation{
-    width: 200px;
+    width: 100px;
     height: 140px;
-    background-color: #0f0;
+    background-color: #CBEFCB;
     margin-left: 76%;
     margin-top: 23%;
     display: none;
@@ -373,14 +374,20 @@ li span{
 #battle .ratingDiv{
     width: 14px;
     height: 14px;
-    background-color: #30a;
+    background-color: #602DD7;
     margin-top: 1px;
 }
 
 #gameOver{
-    background-image: url(resource/system/gameover.jpg);
+    /*background-image: url(resource/system/gameover.png);
+    background-size: auto 100%;*/
     width: 100%;
     height: 100%;
+    background-color: #000;
     position: absolute;
     display: none;
+}
+#gameOver img{
+    height: 100%;
+    margin-left: 240px;
 }

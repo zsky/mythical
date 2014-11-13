@@ -530,6 +530,15 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
                         };
                     }              
                     break;
+                case "equip":
+                    if(this.gameData.common.equip[stuff[1]]){
+                        this.gameData.common.equip[stuff[1]].num += stuff[2];
+                    }else{
+                        this.gameData.common.equip[stuff[1]] = {
+                            num: stuff[2]
+                        };
+                    }              
+                    break;
             }
         }
 
@@ -686,7 +695,7 @@ define(['lib/pixi', 'utils'], function (PIXI, utils) {
                 }else if(this.state === "sysRecord"){
                     this.sys["record"].style.display = "none";
                     this.sys["sysMenu"].style.display = "block";
-                    this.state = "";
+                    this.state = "sysMenu";
                }else if(this.state === "readRecord"){
                    this.sys["record"].style.display = "none";
                    this.sys["mainMenu"].style.display = "block";
